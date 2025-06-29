@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Tracker : Registar</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body::-webkit-scrollbar {
+      display: none;
+    }
+    html {
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ambiance-canvas" width="831" height="935" style="opacity: 1;"></canvas>
+  <div class="main-container">
+    <div class="container">
+      <form id="registerForm" class="form">
+        <h2>Finance Tracker</h2>
+        <h3>Registar</h3>
+        <div class="input-group">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" id="email" required>
+          <label for="email">Email</label>
+        </div>
+        <div class="input-group">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" required>
+          <label for="password">Palavra-passe</label>
+        </div>
+        <div class="input-group">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="nome" required>
+          <label for="nome">Nome completo</label>
+        </div>
+        <div class="input-group">
+          <i class="fa-solid fa-cake-candles"></i>
+          <input type="date" id="dataNascimento" required>
+          <label for="dataNascimento">Data de nascimento</label>
+        </div>
+        <button type="submit">Registar</button>
+        <p>Já tens conta? <a href="login.html">Entrar</a></p>
+      </form>
+      <div class="image-section">
+        <img src="../images/finance_tracker_logo.png" alt="Finance Tracker logo">
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="js/auth.js"></script>
+  <script src="js/register.js"></script>
+  <script src="js/ambiance.js"></script>
+</body>
+</html>

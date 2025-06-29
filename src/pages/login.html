@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Tracker : Entrar</title>
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+  <canvas id="ambiance-canvas" width="831" height="935" style="opacity: 1;"></canvas>
+  <div class="container">
+    <form id="loginForm" class="form">
+      <h2>Finance Tracker</h2>
+      <h3>Entrar</h3>
+      <div class="input-group">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="email" required>
+        <label for="email">Email</label>
+      </div>
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="password" required>
+        <label for="password">Palavra-passe</label>
+      </div>
+      <div class="lembrar-group">
+        <input type="checkbox" id="lembrar">
+        <label for="lembrar">Lembrar-me</label>
+      </div>
+      <button type="submit">Entrar</button>
+      <p>Não tens conta? <a href="register.html">Registar</a></p>
+    </form>
+    <div class="image-section">
+      <img src="../images/finance_tracker_logo.png" alt="Finance Tracker logo">
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="js/auth.js"></script>
+  <script src="js/login.js"></script>
+  <script src="js/ambiance.js"></script>
+</body>
+</html>
