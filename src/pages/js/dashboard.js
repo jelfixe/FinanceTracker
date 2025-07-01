@@ -549,8 +549,9 @@ document.addEventListener('DOMContentLoaded', function() {
       // Adiciona filtros de pesquisa e categoria
       const filtrosHtml = `
         <div class="poupancas-filtros">
-          <input type="text" id="pesquisa-poupanca" placeholder="Pesquisar..." />
-          <select id="filtro-poupanca-categoria">
+<div class="transacoes-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
+            <input type="text" id="pesquisa-transacao" placeholder="Pesquisar..." style="flex:1;max-width:220px;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <select id="filtro-categoria" style="padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
             <option value="">Todas as categorias</option>
             <option value="fa-piggy-bank">Poupança</option>
             <option value="fa-plane">Viagem</option>
