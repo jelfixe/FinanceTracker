@@ -153,10 +153,40 @@ document.addEventListener('DOMContentLoaded', function() {
         </section>`;
         break;
       case 'saldo':
-        html = `<section class="placeholder-section">
-          <h1><i class="fa fa-wallet"></i> Saldo</h1>
-          <p>Veja aqui o seu saldo detalhado.</p>
-        </section>`;
+        html = `
+        <section class="saldo-section">
+          <div class="saldo-header" style="display:flex;align-items:center;gap:1.2rem;margin-bottom:2rem;">
+            <h1 style="font-size:2.1rem;color:#e0defa;font-weight:700;display:flex;align-items:center;gap:0.7em;margin:0;">
+              <i class="fa fa-wallet"></i> Saldo
+            </h1>
+            <span id="saldo-refresh" title="Atualizar saldo" style="cursor:pointer;color:#6d5dd2;font-size:1.3rem;"><i class="fa fa-rotate"></i></span>
+          </div>
+          <div class="saldo-cards" style="display:flex;gap:2.2rem;flex-wrap:wrap;margin-bottom:2.5rem;">
+            <div class="saldo-card total">
+              <div class="saldo-label"><i class="fa fa-wallet"></i> Saldo Atual</div>
+              <div class="saldo-valor" id="saldo-total">€0,00</div>
+            </div>
+          </div>
+          <div class="saldo-graficos" style="display:flex;gap:2.2rem;flex-wrap:wrap;">
+            <div style="background:#23243a;border-radius:1.1rem;box-shadow:0 4px 24px #6d5dd21a;padding:1.5rem 1.5rem 1.2rem 1.5rem;min-width:280px;max-width:420px;width:100%;height:340px;display:flex;flex-direction:column;">
+              <div style="color:#bdbdf7;font-size:1.13em;font-weight:600;margin-bottom:0.7em;text-align:center;">Evolução do Saldo</div>
+              <div style="flex:1;min-height:0;">
+                <canvas id="grafico-evolucao-saldo" style="width:100%;height:100%;max-height:260px;aspect-ratio:2/1;"></canvas>
+              </div>
+            </div>
+            <div style="background:#23243a;border-radius:1.1rem;box-shadow:0 4px 24px #6d5dd21a;padding:1.5rem 1.5rem 1.2rem 1.5rem;min-width:280px;max-width:420px;width:100%;height:340px;display:flex;flex-direction:column;">
+              <div style="color:#bdbdf7;font-size:1.13em;font-weight:600;margin-bottom:0.7em;text-align:center;">Distribuição de Despesas</div>
+              <div style="flex:1;min-height:0;">
+                <canvas id="grafico-despesas-saldo" style="width:100%;height:100%;max-height:260px;aspect-ratio:2/1;"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="saldo-tips" style="margin-top:2.5rem;">
+            <h2 style="color:#ffe066;font-size:1.15em;margin-bottom:0.7em;"><i class="fa fa-lightbulb"></i> Dica Financeira</h2>
+            <div id="saldo-tip" style="color:#bdbdf7;font-size:1.08em;background:#23243a;padding:1em 1.5em;border-radius:0.7em;box-shadow:0 1px 4px #6d5dd222;max-width:600px;"></div>
+          </div>
+        </section>
+        `;
         break;
       case 'transacoes':
         html = `
@@ -295,6 +325,206 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
     }
     main.innerHTML = html;
+
+    // --- SALDO SECTION LOGIC ---
+    if (section === 'saldo') {
+      const token = localStorage.getItem('token');
+      const saldoTotalEl = document.getElementById('saldo-total');
+      const graficoEvolucao = document.getElementById('grafico-evolucao-saldo');
+      const graficoDespesas = document.getElementById('grafico-despesas-saldo');
+      const saldoTipEl = document.getElementById('saldo-tip');
+      const refreshBtn = document.getElementById('saldo-refresh');
+
+      // Dicas financeiras aleatórias
+      const dicas = [
+        "Registe todas as suas despesas para identificar onde pode poupar.",
+        "Defina metas de poupança mensais e acompanhe o progresso.",
+        "Evite compras por impulso: espere 24h antes de decidir.",
+        "Automatize transferências para a sua poupança.",
+        "Revise subscrições e serviços que já não utiliza.",
+        "Compare preços antes de grandes compras.",
+        "Invista em educação financeira para tomar melhores decisões.",
+        "Tenha um fundo de emergência equivalente a 3-6 meses de despesas.",
+        "Pague-se a si próprio primeiro: poupe antes de gastar.",
+        "Use listas de compras para evitar gastos desnecessários."
+      ];
+      function mostrarDica() {
+        saldoTipEl.textContent = dicas[Math.floor(Math.random() * dicas.length)];
+      }
+
+      // Função para buscar e mostrar saldo detalhado
+      async function atualizarSaldo() {
+        // Buscar transações e poupancas (mas saldo NÃO inclui poupancas)
+        const [transRes, poupRes] = await Promise.all([
+          fetch('http://localhost:3000/api/transacoes', { headers: { 'Authorization': 'Bearer ' + token } }),
+          fetch('http://localhost:3000/api/poupancas', { headers: { 'Authorization': 'Bearer ' + token } })
+        ]);
+        const transacoes = transRes.ok ? await transRes.json() : [];
+        const poupancas = poupRes.ok ? await poupRes.json() : [];
+
+        let receitas = 0, despesas = 0;
+        transacoes.forEach(t => {
+          if (t.tipo === 'rendimento') receitas += Number(t.preco);
+          else if (t.tipo === 'despesa') despesas += Number(t.preco);
+        });
+
+        // Saldo = receitas - despesas (NÃO soma poupancas)
+        const saldo = receitas - despesas;
+
+        if (saldoTotalEl) saldoTotalEl.textContent = `€${saldo.toFixed(2)}`;
+
+        // Gráfico evolução do saldo: área colorida, pontos, e linha curva
+        if (graficoEvolucao) {
+          // Agrupar por dia e calcular saldo acumulado por dia
+          const transOrd = [...transacoes].sort((a, b) => new Date(a.data) - new Date(b.data));
+          const saldoPorDia = {};
+          let saldoAcum = 0;
+          transOrd.forEach(t => {
+            const dia = new Date(t.data);
+            dia.setHours(0,0,0,0);
+            const key = dia.toISOString().slice(0,10);
+            if (!(key in saldoPorDia)) saldoPorDia[key] = saldoAcum;
+            if (t.tipo === 'rendimento') saldoAcum += Number(t.preco);
+            else if (t.tipo === 'despesa') saldoAcum -= Number(t.preco);
+            saldoPorDia[key] = saldoAcum;
+          });
+          const labels = Object.keys(saldoPorDia).sort();
+          const dataSaldo = labels.map(key => saldoPorDia[key]);
+          const labelsFormat = labels.map(key => {
+            const d = new Date(key);
+            return d.toLocaleDateString('pt-PT');
+          });
+
+          // Cores dinâmicas: verde se sobe, vermelho se desce, azul se igual
+          const pointColors = dataSaldo.map((v, i, arr) => {
+            if (i === 0) return '#ffe066';
+            if (v > arr[i-1]) return '#4bffb3';
+            if (v < arr[i-1]) return '#ff4b4b';
+            return '#6d5dd2';
+          });
+
+          if (window.graficoEvolucaoSaldo) window.graficoEvolucaoSaldo.destroy();
+          window.graficoEvolucaoSaldo = new Chart(graficoEvolucao.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: labelsFormat,
+              datasets: [{
+                label: 'Saldo acumulado',
+                data: dataSaldo,
+                borderColor: '#6d5dd2',
+                backgroundColor: (ctx) => {
+                  const chart = ctx.chart;
+                  const {ctx: c, chartArea} = chart;
+                  if (!chartArea) return 'rgba(109,93,210,0.13)';
+                  const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                  gradient.addColorStop(0, '#6d5dd244');
+                  gradient.addColorStop(1, '#23243a00');
+                  return gradient;
+                },
+                fill: true,
+                tension: 0.35,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: '#23243a',
+                pointBorderWidth: 2,
+                segment: {
+                  borderColor: ctx => {
+                    const i = ctx.p0DataIndex;
+                    if (i === 0) return '#6d5dd2';
+                    if (dataSaldo[i] > dataSaldo[i-1]) return '#4bffb3';
+                    if (dataSaldo[i] < dataSaldo[i-1]) return '#ff4b4b';
+                    return '#6d5dd2';
+                  },
+                  borderDash: ctx => {
+                    const i = ctx.p0DataIndex;
+                    if (i === 0) return [];
+                    if (dataSaldo[i] === dataSaldo[i-1]) return [4,4];
+                    return [];
+                  }
+                }
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { labels: { color: '#e0defa' } },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return `Saldo: €${context.parsed.y.toFixed(2)}`;
+                    }
+                  }
+                }
+              },
+              layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } },
+              scales: {
+                x: {
+                  ticks: { color: '#e0defa', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+                  grid: { display: false }
+                },
+                y: {
+                  ticks: { color: '#e0defa' },
+                  grid: { color: '#35365a22' }
+                }
+              }
+            }
+          });
+        }
+
+        // Gráfico de despesas por categoria
+        if (graficoDespesas) {
+          const despesasArr = transacoes.filter(t => t.tipo === 'despesa');
+          const categorias = {};
+          despesasArr.forEach(t => {
+            categorias[t.icone] = (categorias[t.icone] || 0) + Number(t.preco);
+          });
+          const labels = Object.keys(categorias).map(ic => {
+            switch(ic) {
+              case 'fa-cart-shopping': return 'Compras';
+              case 'fa-utensils': return 'Restaurante';
+              case 'fa-bus': return 'Transporte';
+              case 'fa-bolt': return 'Serviços';
+              case 'fa-money-bill': return 'Outro';
+              default: return ic;
+            }
+          });
+          const valores = Object.values(categorias);
+          if (window.graficoDespesasSaldo) window.graficoDespesasSaldo.destroy();
+          window.graficoDespesasSaldo = new Chart(graficoDespesas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data: valores,
+                backgroundColor: [
+                  '#ff4b4b', '#ffe066', '#6d5dd2', '#4bffb3', '#bdbdf7', '#8f7df7'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { labels: { color: '#e0defa' } }
+              }
+            }
+          });
+        }
+      }
+
+      if (refreshBtn) {
+        refreshBtn.onclick = () => {
+          atualizarSaldo();
+          mostrarDica();
+        };
+      }
+
+      atualizarSaldo();
+      mostrarDica();
+    }
 
     // --- DASHBOARD HOME: fetch transações e desenha gráficos ---
     if (section === 'inicio') {
