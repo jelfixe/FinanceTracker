@@ -157,7 +157,7 @@ body::-webkit-scrollbar-track {
   text-align: center;
 }
 .placeholder-section h1 {
-  color: #6d5dd2;
+  color: #e0defa;
   font-size: 2.1rem;
   margin-bottom: 0.7rem;
   font-weight: 700;
@@ -192,7 +192,7 @@ body::-webkit-scrollbar-track {
   overflow: hidden;
 }
 .card i, .transacao-card .transacao-icone i {
-  color: #8f7df7;
+  color: #e0defa;
   font-size: 2.1rem;
   margin-bottom: 0.7rem;
   filter: drop-shadow(0 2px 8px #6d5dd244);
@@ -271,7 +271,7 @@ body::-webkit-scrollbar-track {
 }
 .transacoes-header h1 {
   font-size: 2rem;
-  color: #8f7df7;
+  color: #e0defa;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -478,7 +478,7 @@ body::-webkit-scrollbar-track {
   justify-content: center;
 }
 .poupanca-icone i {
-  color: #6d5dd2;
+  color: #e0defa;
   font-size: 2.1rem;
   filter: drop-shadow(0 2px 8px #6d5dd244);
 }
