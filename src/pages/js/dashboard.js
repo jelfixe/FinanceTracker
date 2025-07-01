@@ -75,22 +75,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Helper: Atualiza os valores do resumo no dashboard
   function atualizarResumo(transacoes) {
-    let saldo = 0, receitas = 0, despesas = 0, poupancas = 0;
+    let saldo = 0, receitas = 0, despesas = 0;
     transacoes.forEach(t => {
       if (t.tipo === 'rendimento') receitas += Number(t.preco);
       else if (t.tipo === 'despesa') despesas += Number(t.preco);
     });
     saldo = receitas - despesas;
-    poupancas = receitas * 0.1;
+
+    // Buscar total poupado nas poupancas do utilizador
+    const poupancasEl = document.getElementById('total-poupancas');
+    if (poupancasEl) {
+      // Busca poupancas do backend e soma valorAtual
+      fetch('http://localhost:3000/api/poupancas', {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then(poupancas => {
+          let total = 0;
+          if (Array.isArray(poupancas)) {
+            total = poupancas.reduce((acc, p) => acc + Number(p.valorAtual || 0), 0);
+          }
+          poupancasEl.textContent = `€${total.toFixed(2)}`;
+        })
+        .catch(() => {
+          poupancasEl.textContent = '€0.00';
+        });
+    }
 
     const saldoEl = document.getElementById('saldo-atual');
     const receitasEl = document.getElementById('total-receitas');
     const despesasEl = document.getElementById('total-despesas');
-    const poupancasEl = document.getElementById('total-poupancas');
     if (saldoEl) saldoEl.textContent = `€${saldo.toFixed(2)}`;
     if (receitasEl) receitasEl.textContent = `€${receitas.toFixed(2)}`;
     if (despesasEl) despesasEl.textContent = `€${despesas.toFixed(2)}`;
-    if (poupancasEl) poupancasEl.textContent = `€${poupancas.toFixed(2)}`;
     // Atualiza total de transações se existir
     const totalTransacoes = document.getElementById('total-transacoes');
     if (totalTransacoes) totalTransacoes.textContent = transacoes.length;
@@ -102,8 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     switch(section) {
       case 'inicio':
         html = `<section class="dashboard-inicio">
-          <h1><i class="fa fa-chart-line"></i> Início</h1>
-          <p>Bem-vindo ao seu painel financeiro! Aqui pode acompanhar o seu saldo, receitas, despesas e poupanças de forma rápida e intuitiva.</p>
           <div class="dashboard-resumo">
             <div class="resumo-card saldo">
               <span class="resumo-titulo"><i class="fa fa-wallet"></i> Saldo Atual</span>
@@ -122,17 +137,17 @@ document.addEventListener('DOMContentLoaded', function() {
               <span class="resumo-valor" id="total-poupancas">€0,00</span>
             </div>
           </div>
-          <div style="text-align:center; margin-bottom:1.5rem;">
-            <span style="color:#bdbdf7;font-size:1.08em;">Total de transações: <b id="total-transacoes">0</b></span>
+          <div class="dashboard-meta">
+            <div class="meta-item"><i class="fa fa-list"></i> Total de transações: <b id="total-transacoes">0</b></div>
           </div>
           <div class="dashboard-graficos">
-            <div class="grafico-placeholder">
-              <i class="fa fa-chart-pie"></i>
-              <span>Gráfico de Despesas (em breve)</span>
+            <div>
+              <div class="chart-title">Dinheiro gasto por Categoria</div>
+              <canvas id="grafico-despesas-categorias"></canvas>
             </div>
-            <div class="grafico-placeholder">
-              <i class="fa fa-chart-bar"></i>
-              <span>Gráfico de Receitas (em breve)</span>
+            <div>
+              <div class="chart-title">Receitas e Despesas por Mês</div>
+              <canvas id="grafico-mensal"></canvas>
             </div>
           </div>
         </section>`;
@@ -265,6 +280,111 @@ document.addEventListener('DOMContentLoaded', function() {
         break;
     }
     main.innerHTML = html;
+
+    // --- DASHBOARD HOME: fetch transações e desenha gráficos ---
+    if (section === 'inicio') {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:3000/api/transacoes', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+        .then(res => res.ok ? res.json() : [])
+        .then(transacoes => {
+          atualizarResumo(transacoes || []);
+          document.getElementById('total-transacoes').textContent = transacoes.length;
+
+          // --- Gráfico Pie: despesas por categoria ---
+          const despesas = transacoes.filter(t => t.tipo === 'despesa');
+          const categorias = {};
+          despesas.forEach(t => {
+            categorias[t.icone] = (categorias[t.icone] || 0) + Number(t.preco);
+          });
+          const categoriaLabels = Object.keys(categorias).map(ic => {
+            switch(ic) {
+              case 'fa-cart-shopping': return 'Compras';
+              case 'fa-utensils': return 'Restaurante';
+              case 'fa-bus': return 'Transporte';
+              case 'fa-bolt': return 'Serviços';
+              case 'fa-money-bill': return 'Outro';
+              default: return ic;
+            }
+          });
+          const categoriaValores = Object.values(categorias);
+
+          if (window.graficoDespesasCategorias) window.graficoDespesasCategorias.destroy();
+          const ctxPie = document.getElementById('grafico-despesas-categorias').getContext('2d');
+          window.graficoDespesasCategorias = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+              labels: categoriaLabels,
+              datasets: [{
+                data: categoriaValores,
+                backgroundColor: [
+                  '#6d5dd2', '#ff4b4b', '#ffe066', '#4bffb3', '#bdbdf7', '#8f7df7'
+                ],
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: { display: true, text: '', color: '#e0defa', font: { size: 18 } },
+                legend: { labels: { color: '#e0defa' } }
+              }
+            }
+          });
+
+          // --- Gráfico Bar: receitas e despesas por mês ---
+          const meses = {};
+          transacoes.forEach(t => {
+            const d = new Date(t.data);
+            const mes = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            if (!meses[mes]) meses[mes] = { receitas: 0, despesas: 0 };
+            if (t.tipo === 'rendimento') meses[mes].receitas += Number(t.preco);
+            if (t.tipo === 'despesa') meses[mes].despesas += Number(t.preco);
+          });
+          const mesesLabels = Object.keys(meses).sort();
+          const receitasPorMes = mesesLabels.map(m => meses[m].receitas);
+          const despesasPorMes = mesesLabels.map(m => meses[m].despesas);
+
+          if (window.graficoMensal) window.graficoMensal.destroy();
+          const ctxBar = document.getElementById('grafico-mensal').getContext('2d');
+          window.graficoMensal = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+              labels: mesesLabels,
+              datasets: [
+                {
+                  label: 'Receitas',
+                  data: receitasPorMes,
+                  backgroundColor: '#4bffb3'
+                },
+                {
+                  label: 'Despesas',
+                  data: despesasPorMes,
+                  backgroundColor: '#ff4b4b'
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: { display: true, text: '', color: '#e0defa', font: { size: 18 } },
+                legend: { labels: { color: '#e0defa' } }
+              },
+              scales: {
+                x: { ticks: { color: '#e0defa' } },
+                y: { ticks: { color: '#e0defa' } }
+              }
+            }
+          });
+        })
+        .catch(() => {
+          atualizarResumo([]);
+          document.getElementById('total-transacoes').textContent = '0';
+        });
+    }
 
     // --- Lógica para o modal de transações e integração com a base de dados ---
     if (section === 'transacoes') {
