@@ -250,15 +250,14 @@ body::-webkit-scrollbar-track {
   border-radius: 0.5em;
   padding: 0.2em 0.7em;
   background: #23243a;
-  box-shadow: 0 1px 4px #6d5dd222;
 }
 .transacao-preco.despesa {
   color: #ff4b4b;
-  background: #2a1a1a;
+  background: transparent;
 }
 .transacao-preco.rendimento {
   color: #4bffb3;
-  background: #1a2a1a;
+  background: transparent;
 }
 
 /* --- Section Header --- */
