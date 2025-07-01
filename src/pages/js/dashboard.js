@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
             <button id="adicionar-transacao-btn" class="btn btn-primario"><i class="fa fa-plus"></i> Nova</button>
           </div>
           <div class="transacoes-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
-            <input type="text" id="pesquisa-transacao" placeholder="Pesquisar..." style="flex:1;max-width:220px;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
-            <select id="filtro-categoria" style="padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <input type="text" id="pesquisa-transacao" placeholder="Pesquisar..." style="font-size:1rem;flex:1;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <select id="filtro-categoria" style="font-size:1rem;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
               <option value="">Todas as categorias</option>
               <option value="fa-cart-shopping">Compras</option>
               <option value="fa-utensils">Restaurante</option>
@@ -224,6 +224,21 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="transacoes-header">
             <h1><i class="fa fa-piggy-bank"></i> Poupanças</h1>
             <button id="adicionar-poupanca-btn" class="btn btn-primario"><i class="fa fa-plus"></i> Nova</button>
+          </div>
+          <div class="poupancas-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
+            <input type="text" id="pesquisa-poupanca" placeholder="Pesquisar..." style="flex:1;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <select id="filtro-poupanca-categoria" style="padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+              <option value="">Todas as categorias</option>
+              <option value="fa-piggy-bank">Poupança</option>
+              <option value="fa-plane">Viagem</option>
+              <option value="fa-car">Carro</option>
+              <option value="fa-house">Casa</option>
+              <option value="fa-gift">Presente</option>
+              <option value="fa-graduation-cap">Educação</option>
+              <option value="fa-heart">Saúde</option>
+              <option value="fa-laptop">Tecnologia</option>
+              <option value="fa-money-bill">Outro</option>
+            </select>
           </div>
           <div id="poupancas-lista" class="poupancas-lista"></div>
           <!-- Modal para criar/editar poupanca -->
@@ -512,6 +527,30 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
       }
 
+      // Função para filtrar transações por pesquisa e categoria
+      function filtrarTransacoes() {
+        const termo = (document.getElementById('pesquisa-transacao').value || '').toLowerCase();
+        const categoria = document.getElementById('filtro-categoria').value;
+        let filtradas = transacoesOriginais;
+        if (termo) {
+          filtradas = filtradas.filter(t =>
+            (t.nome && t.nome.toLowerCase().includes(termo)) ||
+            (t.icone && t.icone.toLowerCase().includes(termo))
+          );
+        }
+        if (categoria) {
+          // Se for categoria de tipo (Despesa/Rendimento)
+          if (categoria === 'fa-arrow-up') {
+            filtradas = filtradas.filter(t => t.tipo === 'despesa');
+          } else if (categoria === 'fa-arrow-down') {
+            filtradas = filtradas.filter(t => t.tipo === 'rendimento');
+          } else {
+            filtradas = filtradas.filter(t => t.icone === categoria);
+          }
+        }
+        renderTransacoes(filtradas);
+      }
+
       // Buscar transações do utilizador
       async function fetchTransacoes() {
         try {
@@ -533,6 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
           transacoesOriginais = data;
           renderTransacoes(data);
           atualizarResumo(data);
+          
+          // Attach event listeners for filters AFTER data is loaded
+          const pesquisaInput = document.getElementById('pesquisa-transacao');
+          const categoriaSelect = document.getElementById('filtro-categoria');
+          if (pesquisaInput) {
+            pesquisaInput.addEventListener('input', filtrarTransacoes);
+          }
+          if (categoriaSelect) {
+            categoriaSelect.addEventListener('change', filtrarTransacoes);
+          }
         } catch (err) {
           lista.innerHTML = `<p class="erro">Erro ao carregar transações: ${err.message}</p>`;
           console.error('Erro JS:', err);
@@ -668,22 +717,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
       // Adiciona filtros de pesquisa e categoria
       const filtrosHtml = `
-        <div class="poupancas-filtros">
-<div class="transacoes-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
-            <input type="text" id="pesquisa-transacao" placeholder="Pesquisar..." style="flex:1;max-width:220px;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
-            <select id="filtro-categoria" style="padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
-            <option value="">Todas as categorias</option>
-            <option value="fa-piggy-bank">Poupança</option>
-            <option value="fa-plane">Viagem</option>
-            <option value="fa-car">Carro</option>
-            <option value="fa-house">Casa</option>
-            <option value="fa-gift">Presente</option>
-            <option value="fa-graduation-cap">Educação</option>
-            <option value="fa-heart">Saúde</option>
-            <option value="fa-laptop">Tecnologia</option>
-            <option value="fa-money-bill">Outro</option>
-          </select>
-        </div>
       `;
       lista.insertAdjacentHTML('beforebegin', filtrosHtml);
 
@@ -848,6 +881,16 @@ document.addEventListener('DOMContentLoaded', function() {
           const data = await res.json();
           poupancasOriginais = data;
           renderPoupancas(data);
+
+          // Attach filtros
+          const pesquisaInput = document.getElementById('pesquisa-poupanca');
+          const categoriaSelect = document.getElementById('filtro-poupanca-categoria');
+          if (pesquisaInput) {
+            pesquisaInput.addEventListener('input', filtrarPoupancas);
+          }
+          if (categoriaSelect) {
+            categoriaSelect.addEventListener('change', filtrarPoupancas);
+          }
         } catch (err) {
           lista.innerHTML = `<p class="erro">Erro ao carregar poupanças: ${err.message}</p>`;
           console.error('Erro JS:', err);
@@ -987,6 +1030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       }
 
+      // Função para filtrar poupancas por pesquisa e categoria
       function filtrarPoupancas() {
         const termo = (document.getElementById('pesquisa-poupanca').value || '').toLowerCase();
         const categoria = document.getElementById('filtro-poupanca-categoria').value;
