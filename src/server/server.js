@@ -396,3 +396,264 @@ process.on('SIGINT', async () => {
         process.exit(1);
     }
 });
+
+// --- ROTAS DE TRANSACOES AUTOMATICAS ---
+
+// Listar todas as transações automáticas do utilizador
+app.get('/api/automaticas', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const automaticas = db.collection('automaticas');
+        const lista = await automaticas.find({ userId: String(req.userId) }).sort({ createdAt: -1 }).toArray();
+        const listaFormatada = lista.map(auto => ({
+            ...auto,
+            _id: auto._id && auto._id.toString ? auto._id.toString() : auto._id
+        }));
+        res.json(listaFormatada);
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao obter transações automáticas' });
+    }
+});
+
+// Criar nova transação automática
+app.post('/api/automaticas', authMiddleware, async (req, res) => {
+    try {
+        const { nome, icone, preco, tipo, frequencia, customMinutos } = req.body;
+        if (!nome || !icone || !preco || !tipo || !frequencia) {
+            return res.status(400).json({ mensagem: 'Todos os campos são obrigatórios.' });
+        }
+        if (isNaN(preco) || Number(preco) <= 0) {
+            return res.status(400).json({ mensagem: 'Preço inválido.' });
+        }
+        if (frequencia === 'custom' && (!customMinutos || isNaN(customMinutos) || Number(customMinutos) < 1)) {
+            return res.status(400).json({ mensagem: 'Intervalo custom inválido.' });
+        }
+        const { db } = await connectDB();
+        const automaticas = db.collection('automaticas');
+        const nova = {
+            userId: String(req.userId),
+            nome,
+            icone,
+            preco: Number(preco),
+            tipo,
+            frequencia,
+            customMinutos: frequencia === 'custom' ? Number(customMinutos) : undefined,
+            ultimaExecucao: null,
+            execucoes: 0,
+            createdAt: new Date()
+        };
+        const resultado = await automaticas.insertOne(nova);
+        res.status(201).json({ mensagem: 'Transação automática criada com sucesso', id: resultado.insertedId });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao criar transação automática', erro: err.message });
+    }
+});
+
+// Editar transação automática
+app.put('/api/automaticas/:id', authMiddleware, async (req, res) => {
+    try {
+        if ('_id' in req.body) delete req.body._id;
+        const { nome, icone, preco, tipo, frequencia, customMinutos } = req.body;
+        if (!nome || !icone || !preco || !tipo || !frequencia) {
+            return res.status(400).json({ mensagem: 'Todos os campos são obrigatórios.' });
+        }
+        if (isNaN(preco) || Number(preco) <= 0) {
+            return res.status(400).json({ mensagem: 'Preço inválido.' });
+        }
+        if (frequencia === 'custom' && (!customMinutos || isNaN(customMinutos) || Number(customMinutos) < 1)) {
+            return res.status(400).json({ mensagem: 'Intervalo custom inválido.' });
+        }
+        const { db } = await connectDB();
+        const automaticas = db.collection('automaticas');
+        const id = req.params.id;
+        const resultado = await automaticas.updateOne(
+            { _id: new ObjectId(id), userId: String(req.userId) },
+            { $set: {
+                nome, icone, preco: Number(preco), tipo, frequencia,
+                customMinutos: frequencia === 'custom' ? Number(customMinutos) : undefined
+            } }
+        );
+        if (resultado.matchedCount === 0) {
+            return res.status(404).json({ mensagem: 'Transação automática não encontrada.' });
+        }
+        res.json({ mensagem: 'Transação automática atualizada com sucesso.' });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao atualizar transação automática.', erro: err.message });
+    }
+});
+
+// Apagar transação automática
+app.delete('/api/automaticas/:id', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const automaticas = db.collection('automaticas');
+        const id = req.params.id;
+        if (!id || typeof id !== 'string' || !id.match(/^[a-fA-F0-9]{24}$/)) {
+            return res.status(400).json({ mensagem: 'ID de transação automática inválido.' });
+        }
+        const resultado = await automaticas.deleteOne({ _id: new ObjectId(id), userId: String(req.userId) });
+        if (resultado.deletedCount === 0) {
+            return res.status(404).json({ mensagem: 'Transação automática não encontrada para este utilizador.' });
+        }
+        res.json({ mensagem: 'Transação automática removida com sucesso.' });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao apagar transação automática.', erro: err.message });
+    }
+});
+
+// --- NOTIFICAÇÕES (API) ---
+// Estrutura: { _id, userId, nome, icone, execucoes, data, lida: bool }
+function getNotificacoesCollection(db) {
+    return db.collection('notificacoes');
+}
+
+// GET /api/notificacoes - lista todas as notificações do utilizador (mais recentes primeiro)
+app.get('/api/notificacoes', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const notis = getNotificacoesCollection(db);
+        const lista = await notis.find({ userId: String(req.userId) }).sort({ data: -1 }).toArray();
+        // _id sempre string
+        const listaFormatada = lista.map(n => ({
+            ...n,
+            _id: n._id && n._id.toString ? n._id.toString() : n._id
+        }));
+        res.json(listaFormatada);
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao obter notificações.' });
+    }
+});
+
+// PUT /api/notificacoes/:id/lida - marca uma notificação como lida
+app.put('/api/notificacoes/:id/lida', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const notis = getNotificacoesCollection(db);
+        const id = req.params.id;
+        const resultado = await notis.updateOne(
+            { _id: new ObjectId(id), userId: String(req.userId) },
+            { $set: { lida: true } }
+        );
+        if (resultado.matchedCount === 0) {
+            return res.status(404).json({ mensagem: 'Notificação não encontrada.' });
+        }
+        res.json({ mensagem: 'Notificação marcada como lida.' });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao marcar como lida.' });
+    }
+});
+
+// PUT /api/notificacoes/lidas - marca todas como lidas
+app.put('/api/notificacoes/lidas', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const notis = getNotificacoesCollection(db);
+        await notis.updateMany(
+            { userId: String(req.userId), lida: { $ne: true } },
+            { $set: { lida: true } }
+        );
+        res.json({ mensagem: 'Todas as notificações marcadas como lidas.' });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao marcar todas como lidas.' });
+    }
+});
+
+// DELETE /api/notificacoes - apaga todas as notificações do utilizador
+app.delete('/api/notificacoes', authMiddleware, async (req, res) => {
+    try {
+        const { db } = await connectDB();
+        const notis = getNotificacoesCollection(db);
+        await notis.deleteMany({ userId: String(req.userId) });
+        res.json({ mensagem: 'Todas as notificações apagadas.' });
+    } catch (err) {
+        res.status(500).json({ mensagem: 'Erro ao apagar notificações.' });
+    }
+});
+
+// --- CRIAR NOTIFICAÇÕES AUTOMÁTICAS QUANDO UMA AUTOMÁTICA EXECUTA ---
+// Adiciona notificação quando uma transação automática é executada
+async function criarNotificacaoAutomatica(db, auto, dataExecucao) {
+    const notis = getNotificacoesCollection(db);
+    // Não duplica se já existir para esta execução
+    const existe = await notis.findOne({
+        userId: String(auto.userId),
+        idAutomatica: auto._id ? auto._id.toString() : undefined,
+        data: dataExecucao
+    });
+    if (!existe) {
+        await notis.insertOne({
+            userId: String(auto.userId),
+            idAutomatica: auto._id ? auto._id.toString() : undefined,
+            nome: auto.nome,
+            icone: auto.icone,
+            tipo: auto.tipo,
+            execucoes: (auto.execucoes || 1),
+            data: dataExecucao,
+            lida: false
+        });
+    }
+}
+
+// --- EXECUÇÃO AUTOMÁTICA DAS TRANSAÇÕES AUTOMÁTICAS ---
+setInterval(async () => {
+    try {
+        const { db } = await connectDB();
+        const automaticas = db.collection('automaticas');
+        const transacoes = db.collection('transacoes');
+        const now = new Date();
+
+        const todas = await automaticas.find({}).toArray();
+        for (const auto of todas) {
+            let deveExecutar = false;
+            let ultima = auto.ultimaExecucao ? new Date(auto.ultimaExecucao) : null;
+            switch (auto.frequencia) {
+                case 'diario':
+                    if (!ultima || now.getDate() !== ultima.getDate() || now - ultima > 24*60*60*1000) {
+                        if (!ultima || now - ultima >= 23*60*60*1000) deveExecutar = true;
+                    }
+                    break;
+                case 'semanal':
+                    if (!ultima || now.getDay() === 1 && (now - ultima > 6*24*60*60*1000)) {
+                        if (!ultima || now - ultima >= 6*24*60*60*1000) deveExecutar = true;
+                    }
+                    break;
+                case 'mensal':
+                    if (!ultima || now.getMonth() !== ultima.getMonth() || now - ultima > 27*24*60*60*1000) {
+                        if (!ultima || now - ultima >= 27*24*60*60*1000) deveExecutar = true;
+                    }
+                    break;
+                case 'anual':
+                    if (!ultima || now.getFullYear() !== ultima.getFullYear() || now - ultima > 364*24*60*60*1000) {
+                        if (!ultima || now - ultima >= 364*24*60*60*1000) deveExecutar = true;
+                    }
+                    break;
+                case 'custom':
+                    if (!ultima || now - ultima >= (auto.customMinutos || 1) * 60 * 1000) {
+                        deveExecutar = true;
+                    }
+                    break;
+            }
+            if (deveExecutar) {
+                await transacoes.insertOne({
+                    userId: auto.userId,
+                    nome: auto.nome,
+                    data: now.toISOString(),
+                    icone: auto.icone,
+                    preco: auto.preco,
+                    tipo: auto.tipo,
+                    createdAt: now,
+                    automatico: true,
+                    idAutomatica: auto._id ? auto._id.toString() : undefined
+                });
+                await automaticas.updateOne(
+                    { _id: auto._id },
+                    { $set: { ultimaExecucao: now }, $inc: { execucoes: 1 } }
+                );
+                // --- CRIA NOTIFICAÇÃO ---
+                await criarNotificacaoAutomatica(db, auto, now.toISOString());
+            }
+        }
+    } catch (err) {
+        console.error('Erro no cron de transações automáticas:', err);
+    }
+}, 60 * 1000); // a cada minuto

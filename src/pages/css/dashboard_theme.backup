@@ -1,0 +1,45 @@
+:root {
+  --background-main: #18192a;
+  --background-secondary: #23243a;
+  --background-tertiary: #191a2b;
+  --background-gradient: linear-gradient(135deg, #23243a 70%, #2e2f4d 100%);
+  --background-gradient-modal: linear-gradient(135deg, #23243a 80%, #2e2f4d 100%);
+  --background-gradient-btn: linear-gradient(135deg, #2c2d44, #3b3c5c);
+  --background-gradient-btn-hover: linear-gradient(135deg, #35365a 60%, #23243a 100%);
+  --background-gradient-primary: linear-gradient(90deg, #6d5dd2 60%, #4b6fff 100%);
+  --background-gradient-primary-hover: linear-gradient(90deg, #4b6fff 60%, #6d5dd2 100%);
+  --background-gradient-header: linear-gradient(135deg, #23243a 60%, #23243a 100%);
+  --background-progress: #23243a;
+  --background-tooltip: #23243a;
+  --background-card: #23243a;
+  --background-card-alt: #2e2f4d;
+  --background-card-placeholder: #191a2b;
+
+  --text-main: #e0defa;
+  --text-secondary: #bdbdf7;
+  --text-muted: #aaa;
+  --text-accent: #6d5dd2;
+  --text-accent-2: #8f7df7;
+  --text-success: #4bffb3;
+  --text-warning: #ffe066;
+  --text-danger: #ff4b4b;
+  --text-dark: #23243a;
+  --text-light: #fff;
+
+  --border-main: #35365a;
+  --border-secondary: #444561;
+  --border-accent: #6d5dd2;
+  --border-danger: #ff4b4b;
+  --border-success: #4bffb3;
+  --border-warning: #ffe066;
+
+  --shadow-main: 0 4px 24px rgba(0,0,0,0.15);
+  --shadow-card: 0 0 6px rgba(109, 93, 210, 0.18);
+  --shadow-btn: 0 1px 4px rgba(0, 0, 0, 0.25);
+  --shadow-tooltip: 0 2px 8px rgba(0,0,0,0.18);
+
+  --radius-main: 1.2rem;
+  --radius-card: 1.1rem;
+  --radius-btn: 6px;
+  --radius-input: 0.5em;
+}

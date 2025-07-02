@@ -70,7 +70,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Helper: Remove active from all
   function clearActive() {
-    navBtns.forEach(btn => btn.classList.remove('active'));
+    navBtns.forEach(btn => {
+      if (btn) btn.classList.remove('active');
+    });
   }
 
   // Helper: Atualiza os valores do resumo no dashboard
@@ -118,8 +120,36 @@ document.addEventListener('DOMContentLoaded', function() {
     let html = '';
     switch(section) {
       case 'inicio':
-        html = `<section class="dashboard-inicio">
-          <div class="dashboard-resumo">
+        html = `
+        <section class="dashboard-inicio" style="gap:2.5rem;">
+          <div class="dashboard-home-header" style="display:flex;align-items:center;justify-content:space-between;gap:2rem;margin-bottom:1.5rem;">
+            <div>
+              <h1 style="font-size:2.3rem;color:var(--text-main);font-weight:700;letter-spacing:0.01em;margin:0 0 0.2em 0;line-height:1.1;">
+                <i class="fa-solid fa-house" style="color:var(--text-accent);margin-right:0.5em;"></i>
+                Painel Geral
+              </h1>
+              <div style="color:var(--text-secondary);font-size:1.13em;font-weight:500;">
+                Bem-vindo de volta ao seu resumo financeiro.
+              </div>
+            </div>
+            <div class="dashboard-meta" style="gap:1.5rem;">
+              <div class="meta-item"><i class="fa fa-list"></i> <span style="font-weight:500;">Transações:</span> <b id="total-transacoes">0</b></div>
+              <div class="meta-item"><i class="fa fa-calendar"></i> <span style="font-weight:500;">Período:</span>
+                <select id="dashboard-periodo" style="background:var(--background-card);color:var(--text-main);border-radius:0.5em;border:1.5px solid var(--border-main);font-size:1em;padding:0.2em 0.7em;margin-left:0.3em;">
+                  <option value="hoje">Hoje</option>
+                  <option value="ontem">Ontem</option>
+                  <option value="esta-semana">Esta semana</option>
+                  <option value="semana-passada">Semana passada</option>
+                  <option value="este-mes" selected>Este mês</option>
+                  <option value="mes-passado">Mês passado</option>
+                  <option value="este-ano">Este ano</option>
+                  <option value="ano-passado">Ano passado</option>
+                  <option value="tudo">Tudo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-resumo" style="margin:0 0 1.5rem 0;gap:2.2rem;">
             <div class="resumo-card saldo">
               <span class="resumo-titulo"><i class="fa fa-wallet"></i> Saldo Atual</span>
               <span class="resumo-valor" id="saldo-atual">€0,00</span>
@@ -137,53 +167,24 @@ document.addEventListener('DOMContentLoaded', function() {
               <span class="resumo-valor" id="total-poupancas">€0,00</span>
             </div>
           </div>
-          <div class="dashboard-meta">
-            <div class="meta-item"><i class="fa fa-list"></i> Total de transações: <b id="total-transacoes">0</b></div>
-          </div>
-          <div class="dashboard-graficos">
-            <div>
-              <div class="chart-title">Dinheiro gasto por Categoria</div>
-              <canvas id="grafico-despesas-categorias"></canvas>
+          <div class="dashboard-graficos" style="gap:2.5rem;flex-wrap:wrap;">
+            <div class="grafico-card">
+              <div class="chart-title">Despesas por Categoria</div>
+              <canvas id="grafico-despesas-categorias" style="max-width:350px;max-height:350px;width:100%;height:350px;"></canvas>
             </div>
-            <div>
-              <div class="chart-title">Receitas e Despesas por Mês</div>
-              <canvas id="grafico-mensal"></canvas>
+            <div class="grafico-card">
+              <div class="chart-title">Evolução do Saldo</div>
+              <canvas id="grafico-evolucao-saldo" style="max-width:420px;max-height:350px;width:100%;height:350px;"></canvas>
             </div>
-          </div>
-        </section>`;
-        break;
-      case 'saldo':
-        html = `
-        <section class="saldo-section">
-          <div class="saldo-header" style="display:flex;align-items:center;gap:1.2rem;margin-bottom:2rem;">
-            <h1 style="font-size:2.1rem;color:#e0defa;font-weight:700;display:flex;align-items:center;gap:0.7em;margin:0;">
-              <i class="fa fa-wallet"></i> Saldo
-            </h1>
-            <span id="saldo-refresh" title="Atualizar saldo" style="cursor:pointer;color:#6d5dd2;font-size:1.3rem;"><i class="fa fa-rotate"></i></span>
-          </div>
-          <div class="saldo-cards" style="display:flex;gap:2.2rem;flex-wrap:wrap;margin-bottom:2.5rem;">
-            <div class="saldo-card total">
-              <div class="saldo-label"><i class="fa fa-wallet"></i> Saldo Atual</div>
-              <div class="saldo-valor" id="saldo-total">€0,00</div>
+            <div class="grafico-card">
+              <div class="chart-title">Receitas vs Despesas</div>
+              <canvas id="grafico-receitas-despesas" style="max-width:350px;max-height:350px;width:100%;height:350px;"></canvas>
             </div>
           </div>
-          <div class="saldo-graficos" style="display:flex;gap:2.2rem;flex-wrap:wrap;">
-            <div style="background:#23243a;border-radius:1.1rem;box-shadow:0 4px 24px #6d5dd21a;padding:1.5rem 1.5rem 1.2rem 1.5rem;min-width:280px;max-width:420px;width:100%;height:340px;display:flex;flex-direction:column;">
-              <div style="color:#bdbdf7;font-size:1.13em;font-weight:600;margin-bottom:0.7em;text-align:center;">Evolução do Saldo</div>
-              <div style="flex:1;min-height:0;">
-                <canvas id="grafico-evolucao-saldo" style="width:100%;height:100%;max-height:260px;aspect-ratio:2/1;"></canvas>
-              </div>
+          <div class="dashboard-meta" style="margin-top:2rem;gap:2rem;">
+            <div class="meta-item" id="dashboard-tip" style="color:var(--text-accent);font-size:1.08em;">
+              <!-- Dica financeira será preenchida via JS -->
             </div>
-            <div style="background:#23243a;border-radius:1.1rem;box-shadow:0 4px 24px #6d5dd21a;padding:1.5rem 1.5rem 1.2rem 1.5rem;min-width:280px;max-width:420px;width:100%;height:340px;display:flex;flex-direction:column;">
-              <div style="color:#bdbdf7;font-size:1.13em;font-weight:600;margin-bottom:0.7em;text-align:center;">Distribuição de Despesas</div>
-              <div style="flex:1;min-height:0;">
-                <canvas id="grafico-despesas-saldo" style="width:100%;height:100%;max-height:260px;aspect-ratio:2/1;"></canvas>
-              </div>
-            </div>
-          </div>
-          <div class="saldo-tips" style="margin-top:2.5rem;">
-            <h2 style="color:#ffe066;font-size:1.15em;margin-bottom:0.7em;"><i class="fa fa-lightbulb"></i> Dica Financeira</h2>
-            <div id="saldo-tip" style="color:#bdbdf7;font-size:1.08em;background:#23243a;padding:1em 1.5em;border-radius:0.7em;box-shadow:0 1px 4px #6d5dd222;max-width:600px;"></div>
           </div>
         </section>
         `;
@@ -255,9 +256,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <h1><i class="fa fa-piggy-bank"></i> Poupanças</h1>
             <button id="adicionar-poupanca-btn" class="btn btn-primario"><i class="fa fa-plus"></i> Nova</button>
           </div>
-          <div class="poupancas-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
-            <input type="text" id="pesquisa-poupanca" placeholder="Pesquisar..." style="flex:1;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
-            <select id="filtro-poupanca-categoria" style="padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+          <div class="poupancas-filtros" style="font-size:1rem;display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
+            <input type="text" id="pesquisa-poupanca" placeholder="Pesquisar..." style="font-size:1rem;flex:1;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <select id="filtro-poupanca-categoria" style="font-size:1rem;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
               <option value="">Todas as categorias</option>
               <option value="fa-piggy-bank">Poupança</option>
               <option value="fa-plane">Viagem</option>
@@ -318,312 +319,321 @@ document.addEventListener('DOMContentLoaded', function() {
         </section>`;
         break;
       case 'automaticas':
-        html = `<section class="placeholder-section">
-          <h1><i class="fa fa-repeat"></i> Transações Automáticas</h1>
-          <p>Configure e visualize transações automáticas.</p>
-        </section>`;
+        html = `
+        <section class="automaticas-section">
+          <div class="transacoes-header">
+            <h1><i class="fa fa-repeat"></i> Transações Automáticas</h1>
+            <button id="adicionar-auto-btn" class="btn btn-primario"><i class="fa fa-plus"></i> Nova</button>
+          </div>
+          <div class="automaticas-filtros" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.2rem;">
+            <input type="text" id="pesquisa-auto" placeholder="Pesquisar..." style="font-size:1rem;flex:1;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+            <select id="filtro-auto-frequencia" style="font-size:1rem;padding:0.5em 1em;border-radius:0.5em;border:1.5px solid #35365a;background:#191a2b;color:#e0defa;">
+              <option value="">Todas as frequências</option>
+              <option value="diario">Diariamente</option>
+              <option value="semanal">Semanalmente</option>
+              <option value="mensal">Mensalmente</option>
+              <option value="anual">Anualmente</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div id="automaticas-lista" class="automaticas-lista"></div>
+          <!-- Modal para adicionar/editar transação automática -->
+          <div id="modal-auto" class="modal-transacao" style="display:none;">
+            <div class="modal-conteudo">
+              <span class="fechar-modal" id="fechar-modal-auto">&times;</span>
+              <h2 id="modal-auto-titulo">Nova Transação Automática</h2>
+              <form id="form-auto">
+                <label for="auto-nome">Nome</label>
+                <input type="text" id="auto-nome" name="nome" maxlength="100" required>
+                <label for="auto-icone">Ícone</label>
+                <select id="auto-icone" name="icone" required>
+                  <option value="fa-cart-shopping">Compras</option>
+                  <option value="fa-utensils">Restaurante</option>
+                  <option value="fa-bus">Transporte</option>
+                  <option value="fa-bolt">Serviços</option>
+                  <option value="fa-money-bill">Outro</option>
+                  <option value="fa-arrow-up">Despesa</option>
+                  <option value="fa-arrow-down">Rendimento</option>
+                </select>
+                <label for="auto-preco">Preço (€)</label>
+                <input type="number" id="auto-preco" name="preco" step="0.01" min="0.01" required>
+                <label for="auto-tipo">Tipo</label>
+                <select id="auto-tipo" name="tipo" required>
+                  <option value="despesa">Despesa</option>
+                  <option value="rendimento">Rendimento</option>
+                </select>
+                <label for="auto-frequencia">Frequência</label>
+                <select id="auto-frequencia" name="frequencia" required>
+                  <option value="diario">Diariamente</option>
+                  <option value="semanal">Semanalmente</option>
+                  <option value="mensal">Mensalmente</option>
+                  <option value="anual">Anualmente</option>
+                  <option value="custom">Custom</option>
+                </select>
+                <div id="auto-custom-div" style="display:none;">
+                  <label for="auto-custom-minutos">Intervalo custom (minutos)</label>
+                  <input type="number" id="auto-custom-minutos" name="customMinutos" min="1" step="1">
+                </div>
+                <button type="submit" class="btn btn-primario" id="guardar-auto-btn">Guardar</button>
+              </form>
+              <div id="auto-erro" class="erro-transacao" style="display:none;"></div>
+            </div>
+          </div>
+        </section>
+        `;
         break;
     }
     main.innerHTML = html;
 
-    // --- SALDO SECTION LOGIC ---
-    if (section === 'saldo') {
-      const token = localStorage.getItem('token');
-      const saldoTotalEl = document.getElementById('saldo-total');
-      const graficoEvolucao = document.getElementById('grafico-evolucao-saldo');
-      const graficoDespesas = document.getElementById('grafico-despesas-saldo');
-      const saldoTipEl = document.getElementById('saldo-tip');
-      const refreshBtn = document.getElementById('saldo-refresh');
-
-      // Dicas financeiras aleatórias
-      const dicas = [
-        "Registe todas as suas despesas para identificar onde pode poupar.",
-        "Defina metas de poupança mensais e acompanhe o progresso.",
-        "Evite compras por impulso: espere 24h antes de decidir.",
-        "Automatize transferências para a sua poupança.",
-        "Revise subscrições e serviços que já não utiliza.",
-        "Compare preços antes de grandes compras.",
-        "Invista em educação financeira para tomar melhores decisões.",
-        "Tenha um fundo de emergência equivalente a 3-6 meses de despesas.",
-        "Pague-se a si próprio primeiro: poupe antes de gastar.",
-        "Use listas de compras para evitar gastos desnecessários."
-      ];
-      function mostrarDica() {
-        saldoTipEl.textContent = dicas[Math.floor(Math.random() * dicas.length)];
-      }
-
-      // Função para buscar e mostrar saldo detalhado
-      async function atualizarSaldo() {
-        // Buscar transações e poupancas (mas saldo NÃO inclui poupancas)
-        const [transRes, poupRes] = await Promise.all([
-          fetch('http://localhost:3000/api/transacoes', { headers: { 'Authorization': 'Bearer ' + token } }),
-          fetch('http://localhost:3000/api/poupancas', { headers: { 'Authorization': 'Bearer ' + token } })
-        ]);
-        const transacoes = transRes.ok ? await transRes.json() : [];
-        const poupancas = poupRes.ok ? await poupRes.json() : [];
-
-        let receitas = 0, despesas = 0;
-        transacoes.forEach(t => {
-          if (t.tipo === 'rendimento') receitas += Number(t.preco);
-          else if (t.tipo === 'despesa') despesas += Number(t.preco);
-        });
-
-        // Saldo = receitas - despesas (NÃO soma poupancas)
-        const saldo = receitas - despesas;
-
-        if (saldoTotalEl) saldoTotalEl.textContent = `€${saldo.toFixed(2)}`;
-
-        // Gráfico evolução do saldo: área colorida, pontos, e linha curva
-        if (graficoEvolucao) {
-          // Agrupar por dia e calcular saldo acumulado por dia
-          const transOrd = [...transacoes].sort((a, b) => new Date(a.data) - new Date(b.data));
-          const saldoPorDia = {};
-          let saldoAcum = 0;
-          transOrd.forEach(t => {
-            const dia = new Date(t.data);
-            dia.setHours(0,0,0,0);
-            const key = dia.toISOString().slice(0,10);
-            if (!(key in saldoPorDia)) saldoPorDia[key] = saldoAcum;
-            if (t.tipo === 'rendimento') saldoAcum += Number(t.preco);
-            else if (t.tipo === 'despesa') saldoAcum -= Number(t.preco);
-            saldoPorDia[key] = saldoAcum;
-          });
-          const labels = Object.keys(saldoPorDia).sort();
-          const dataSaldo = labels.map(key => saldoPorDia[key]);
-          const labelsFormat = labels.map(key => {
-            const d = new Date(key);
-            return d.toLocaleDateString('pt-PT');
-          });
-
-          // Cores dinâmicas: verde se sobe, vermelho se desce, azul se igual
-          const pointColors = dataSaldo.map((v, i, arr) => {
-            if (i === 0) return '#ffe066';
-            if (v > arr[i-1]) return '#4bffb3';
-            if (v < arr[i-1]) return '#ff4b4b';
-            return '#6d5dd2';
-          });
-
-          if (window.graficoEvolucaoSaldo) window.graficoEvolucaoSaldo.destroy();
-          window.graficoEvolucaoSaldo = new Chart(graficoEvolucao.getContext('2d'), {
-            type: 'line',
-            data: {
-              labels: labelsFormat,
-              datasets: [{
-                label: 'Saldo acumulado',
-                data: dataSaldo,
-                borderColor: '#6d5dd2',
-                backgroundColor: (ctx) => {
-                  const chart = ctx.chart;
-                  const {ctx: c, chartArea} = chart;
-                  if (!chartArea) return 'rgba(109,93,210,0.13)';
-                  const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                  gradient.addColorStop(0, '#6d5dd244');
-                  gradient.addColorStop(1, '#23243a00');
-                  return gradient;
-                },
-                fill: true,
-                tension: 0.35,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                pointBackgroundColor: pointColors,
-                pointBorderColor: '#23243a',
-                pointBorderWidth: 2,
-                segment: {
-                  borderColor: ctx => {
-                    const i = ctx.p0DataIndex;
-                    if (i === 0) return '#6d5dd2';
-                    if (dataSaldo[i] > dataSaldo[i-1]) return '#4bffb3';
-                    if (dataSaldo[i] < dataSaldo[i-1]) return '#ff4b4b';
-                    return '#6d5dd2';
-                  },
-                  borderDash: ctx => {
-                    const i = ctx.p0DataIndex;
-                    if (i === 0) return [];
-                    if (dataSaldo[i] === dataSaldo[i-1]) return [4,4];
-                    return [];
-                  }
-                }
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { labels: { color: '#e0defa' } },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return `Saldo: €${context.parsed.y.toFixed(2)}`;
-                    }
-                  }
-                }
-              },
-              layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } },
-              scales: {
-                x: {
-                  ticks: { color: '#e0defa', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-                  grid: { display: false }
-                },
-                y: {
-                  ticks: { color: '#e0defa' },
-                  grid: { color: '#35365a22' }
-                }
-              }
-            }
-          });
-        }
-
-        // Gráfico de despesas por categoria
-        if (graficoDespesas) {
-          const despesasArr = transacoes.filter(t => t.tipo === 'despesa');
-          const categorias = {};
-          despesasArr.forEach(t => {
-            categorias[t.icone] = (categorias[t.icone] || 0) + Number(t.preco);
-          });
-          const labels = Object.keys(categorias).map(ic => {
-            switch(ic) {
-              case 'fa-cart-shopping': return 'Compras';
-              case 'fa-utensils': return 'Restaurante';
-              case 'fa-bus': return 'Transporte';
-              case 'fa-bolt': return 'Serviços';
-              case 'fa-money-bill': return 'Outro';
-              default: return ic;
-            }
-          });
-          const valores = Object.values(categorias);
-          if (window.graficoDespesasSaldo) window.graficoDespesasSaldo.destroy();
-          window.graficoDespesasSaldo = new Chart(graficoDespesas.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-              labels,
-              datasets: [{
-                data: valores,
-                backgroundColor: [
-                  '#ff4b4b', '#ffe066', '#6d5dd2', '#4bffb3', '#bdbdf7', '#8f7df7'
-                ],
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { labels: { color: '#e0defa' } }
-              }
-            }
-          });
-        }
-      }
-
-      if (refreshBtn) {
-        refreshBtn.onclick = () => {
-          atualizarSaldo();
-          mostrarDica();
-        };
-      }
-
-      atualizarSaldo();
-      mostrarDica();
-    }
-
-    // --- DASHBOARD HOME: fetch transações e desenha gráficos ---
+    // --- INICIO PAGE LOGIC ---
     if (section === 'inicio') {
       const token = localStorage.getItem('token');
+      let transacoesCache = [];
+      let periodoSelecionado = 'este-mes';
+
+      // Função para obter range de datas para cada filtro
+      function getPeriodoRange(periodo) {
+        const now = new Date();
+        let inicio, fim;
+        switch (periodo) {
+          case 'hoje':
+            inicio = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            fim = new Date(inicio); fim.setDate(fim.getDate() + 1);
+            break;
+          case 'ontem':
+            inicio = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+            fim = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            break;
+          case 'esta-semana': {
+            const diaSemana = now.getDay() || 7;
+            inicio = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diaSemana + 1);
+            fim = new Date(inicio); fim.setDate(fim.getDate() + 7);
+            break;
+          }
+          case 'semana-passada': {
+            const diaSemana = now.getDay() || 7;
+            fim = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diaSemana + 1);
+            inicio = new Date(fim); inicio.setDate(inicio.getDate() - 7);
+            break;
+          }
+          case 'este-mes':
+            inicio = new Date(now.getFullYear(), now.getMonth(), 1);
+            fim = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            break;
+          case 'mes-passado':
+            inicio = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            fim = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          case 'este-ano':
+            inicio = new Date(now.getFullYear(), 0, 1);
+            fim = new Date(now.getFullYear() + 1, 0, 1);
+            break;
+          case 'ano-passado':
+            inicio = new Date(now.getFullYear() - 1, 0, 1);
+            fim = new Date(now.getFullYear(), 0, 1);
+            break;
+          case 'tudo':
+          default:
+            inicio = null; fim = null;
+        }
+        return { inicio, fim };
+      }
+
+      // Função para filtrar transações pelo período selecionado
+      function filtrarTransacoesPeriodo(transacoes, periodo) {
+        const { inicio, fim } = getPeriodoRange(periodo);
+        if (!inicio || !fim) return transacoes;
+        return transacoes.filter(t => {
+          const d = new Date(t.data);
+          return d >= inicio && d < fim;
+        });
+      }
+
+      // Função para atualizar todos os gráficos e resumo
+      function atualizarDashboard(transacoes, periodo) {
+        // Resumo
+        atualizarResumo(transacoes);
+
+        // Pie Chart: despesas por categoria
+        const despesasPeriodo = transacoes.filter(t => t.tipo === 'despesa');
+        const categorias = {};
+        despesasPeriodo.forEach(t => {
+          categorias[t.icone] = (categorias[t.icone] || 0) + Number(t.preco);
+        });
+        const categoriaLabels = Object.keys(categorias).map(ic => {
+          switch(ic) {
+            case 'fa-cart-shopping': return 'Compras';
+            case 'fa-utensils': return 'Restaurante';
+            case 'fa-bus': return 'Transporte';
+            case 'fa-bolt': return 'Serviços';
+            case 'fa-money-bill': return 'Outro';
+            default: return ic;
+          }
+        });
+        const categoriaValores = Object.values(categorias);
+
+        if (window.graficoDespesasCategorias) window.graficoDespesasCategorias.destroy();
+        const ctxPie = document.getElementById('grafico-despesas-categorias').getContext('2d');
+        window.graficoDespesasCategorias = new Chart(ctxPie, {
+          type: 'pie',
+          data: {
+            labels: categoriaLabels,
+            datasets: [{
+              data: categoriaValores,
+              backgroundColor: [
+                '#6c5cd2', '#e05a6c', '#ffe066', '#3fd1a0', '#b2b2c6', '#8a7be6', '#4bffb3', '#ffb347'
+              ],
+              borderWidth: 2,
+              borderColor: '#23233a'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1,
+            plugins: {
+              legend: { labels: { color: '#e3e3f1', font: { size: 15 } } },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const label = context.label || '';
+                    const value = context.parsed || 0;
+                    return `${label}: €${value.toFixed(2)}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // Line Chart: evolução do saldo (no período)
+        // Agrupar por dia
+        const transOrd = [...transacoes].sort((a, b) => new Date(a.data) - new Date(b.data));
+        const dias = {};
+        let saldoAcum = 0;
+        transOrd.forEach(t => {
+          const dia = new Date(t.data);
+          dia.setHours(0,0,0,0);
+          const key = dia.toISOString().slice(0,10);
+          if (!dias[key]) dias[key] = saldoAcum;
+          if (t.tipo === 'rendimento') saldoAcum += Number(t.preco);
+          else if (t.tipo === 'despesa') saldoAcum -= Number(t.preco);
+          dias[key] = saldoAcum;
+        });
+        const labels = Object.keys(dias).sort();
+        const dataSaldo = labels.map(key => dias[key]);
+        const labelsFormat = labels.map(key => {
+          const d = new Date(key);
+          return d.toLocaleDateString('pt-PT');
+        });
+
+        if (window.graficoEvolucaoSaldo) window.graficoEvolucaoSaldo.destroy();
+        const ctxLine = document.getElementById('grafico-evolucao-saldo').getContext('2d');
+        window.graficoEvolucaoSaldo = new Chart(ctxLine, {
+          type: 'line',
+          data: {
+            labels: labelsFormat,
+            datasets: [{
+              label: 'Saldo',
+              data: dataSaldo,
+              borderColor: '#6c5cd2',
+              backgroundColor: 'rgba(108,92,210,0.10)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              pointBackgroundColor: '#6c5cd2'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1.5,
+            plugins: {
+              legend: { labels: { color: '#e3e3f1', font: { size: 15 } } },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `Saldo: €${context.parsed.y.toFixed(2)}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { ticks: { color: '#e3e3f1', font: { size: 13 } }, grid: { color: '#23233a' } },
+              y: { ticks: { color: '#e3e3f1', font: { size: 13 } }, grid: { color: '#23233a' } }
+            }
+          }
+        });
+
+        // Bar Chart: receitas vs despesas (no período)
+        let receitasPeriodo = 0, despesasPeriodoValor = 0;
+        transacoes.forEach(t => {
+          if (t.tipo === 'rendimento') receitasPeriodo += Number(t.preco);
+          if (t.tipo === 'despesa') despesasPeriodoValor += Number(t.preco);
+        });
+
+        if (window.graficoReceitasDespesas) window.graficoReceitasDespesas.destroy();
+        const ctxBar = document.getElementById('grafico-receitas-despesas').getContext('2d');
+        window.graficoReceitasDespesas = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{
+              label: 'Valor (€)',
+              data: [receitasPeriodo, despesasPeriodoValor],
+              backgroundColor: ['#3fd1a0', '#e05a6c'],
+              borderWidth: 2,
+              borderColor: '#23233a'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `${context.label}: €${context.parsed.y.toFixed(2)}`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { ticks: { color: '#e3e3f1', font: { size: 13 } }, grid: { color: '#23233a' } },
+              y: { ticks: { color: '#e3e3f1', font: { size: 13 } }, grid: { color: '#23233a' } }
+            }
+          }
+        });
+      }
+
+      // Carregar transações e inicializar dashboard
       fetch('http://localhost:3000/api/transacoes', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
         .then(res => res.ok ? res.json() : [])
         .then(transacoes => {
-          atualizarResumo(transacoes || []);
-          document.getElementById('total-transacoes').textContent = transacoes.length;
+          transacoesCache = transacoes || [];
+          document.getElementById('total-transacoes').textContent = transacoesCache.length;
+          // Inicializa com o período default
+          const periodoSelect = document.getElementById('dashboard-periodo');
+          periodoSelecionado = periodoSelect ? periodoSelect.value : 'este-mes';
+          const transacoesFiltradas = filtrarTransacoesPeriodo(transacoesCache, periodoSelecionado);
+          atualizarDashboard(transacoesFiltradas, periodoSelecionado);
 
-          // --- Gráfico Pie: despesas por categoria ---
-          const despesas = transacoes.filter(t => t.tipo === 'despesa');
-          const categorias = {};
-          despesas.forEach(t => {
-            categorias[t.icone] = (categorias[t.icone] || 0) + Number(t.preco);
-          });
-          const categoriaLabels = Object.keys(categorias).map(ic => {
-            switch(ic) {
-              case 'fa-cart-shopping': return 'Compras';
-              case 'fa-utensils': return 'Restaurante';
-              case 'fa-bus': return 'Transporte';
-              case 'fa-bolt': return 'Serviços';
-              case 'fa-money-bill': return 'Outro';
-              default: return ic;
-            }
-          });
-          const categoriaValores = Object.values(categorias);
+          // Atualiza resumo para todas as transações (não só filtradas)
+          atualizarResumo(transacoesCache);
 
-          if (window.graficoDespesasCategorias) window.graficoDespesasCategorias.destroy();
-          const ctxPie = document.getElementById('grafico-despesas-categorias').getContext('2d');
-          window.graficoDespesasCategorias = new Chart(ctxPie, {
-            type: 'pie',
-            data: {
-              labels: categoriaLabels,
-              datasets: [{
-                data: categoriaValores,
-                backgroundColor: [
-                  '#6d5dd2', '#ff4b4b', '#ffe066', '#4bffb3', '#bdbdf7', '#8f7df7'
-                ],
-                borderWidth: 1
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                title: { display: true, text: '', color: '#e0defa', font: { size: 18 } },
-                legend: { labels: { color: '#e0defa' } }
-              }
-            }
-          });
-
-          // --- Gráfico Bar: receitas e despesas por mês ---
-          const meses = {};
-          transacoes.forEach(t => {
-            const d = new Date(t.data);
-            const mes = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-            if (!meses[mes]) meses[mes] = { receitas: 0, despesas: 0 };
-            if (t.tipo === 'rendimento') meses[mes].receitas += Number(t.preco);
-            if (t.tipo === 'despesa') meses[mes].despesas += Number(t.preco);
-          });
-          const mesesLabels = Object.keys(meses).sort();
-          const receitasPorMes = mesesLabels.map(m => meses[m].receitas);
-          const despesasPorMes = mesesLabels.map(m => meses[m].despesas);
-
-          if (window.graficoMensal) window.graficoMensal.destroy();
-          const ctxBar = document.getElementById('grafico-mensal').getContext('2d');
-          window.graficoMensal = new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-              labels: mesesLabels,
-              datasets: [
-                {
-                  label: 'Receitas',
-                  data: receitasPorMes,
-                  backgroundColor: '#4bffb3'
-                },
-                {
-                  label: 'Despesas',
-                  data: despesasPorMes,
-                  backgroundColor: '#ff4b4b'
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                title: { display: true, text: '', color: '#e0defa', font: { size: 18 } },
-                legend: { labels: { color: '#e0defa' } }
-              },
-              scales: {
-                x: { ticks: { color: '#e0defa' } },
-                y: { ticks: { color: '#e0defa' } }
-              }
-            }
-          });
+          // Handler para mudar o filtro de período
+          if (periodoSelect) {
+            periodoSelect.addEventListener('change', function() {
+              periodoSelecionado = periodoSelect.value;
+              const filtradas = filtrarTransacoesPeriodo(transacoesCache, periodoSelecionado);
+              atualizarDashboard(filtradas, periodoSelecionado);
+            });
+          }
         })
         .catch(() => {
           atualizarResumo([]);
@@ -964,8 +974,8 @@ document.addEventListener('DOMContentLoaded', function() {
           const percent = Math.min(100, Math.round(((pou.valorAtual || 0) / pou.valorMeta) * 100));
           const concluida = pou.concluida;
           const podeConcluir = !concluida && (pou.valorAtual || 0) >= pou.valorMeta;
-          const corBarra = concluida ? '#4bffb3' : '#6d5dd2';
-          const corBorda = concluida ? '#4bffb3' : '#6d5dd2';
+          const corBarra = concluida ? '#4bffb3' : '#6d5cd2';
+          const corBorda = concluida ? '#4bffb3' : '#6d5cd2';
           return `
           <div class="poupanca-card" data-id="${isValidId ? id : ''}" style="border-left-color:${corBorda};">
             <div class="poupanca-icone"><i class="fa ${pou.icone}"></i></div>
@@ -1189,6 +1199,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
 
+      // Modal abrir/fechar
       if (btnAbrir && modal) {
         btnAbrir.addEventListener('click', function() {
           isEditMode = false;
@@ -1288,18 +1299,271 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
+
+    // --- Lógica para transações automáticas ---
+    if (section === 'automaticas') {
+      const btnAbrir = document.getElementById('adicionar-auto-btn');
+      const modal = document.getElementById('modal-auto');
+      const btnFechar = document.getElementById('fechar-modal-auto');
+      const form = document.getElementById('form-auto');
+      const lista = document.getElementById('automaticas-lista');
+      const erroDiv = document.getElementById('auto-erro');
+      const token = localStorage.getItem('token');
+      let isEditMode = false;
+      let editingId = null;
+      let automaticasOriginais = [];
+
+      // Mostrar/ocultar campo custom
+      const freqSelect = document.getElementById('auto-frequencia');
+      const customDiv = document.getElementById('auto-custom-div');
+      if (freqSelect && customDiv) {
+        freqSelect.addEventListener('change', function() {
+          customDiv.style.display = freqSelect.value === 'custom' ? 'block' : 'none';
+        });
+      }
+
+      function fecharModal() {
+        modal.style.display = 'none';
+        form.reset();
+        erroDiv.style.display = 'none';
+        erroDiv.textContent = '';
+        isEditMode = false;
+        editingId = null;
+        document.getElementById('modal-auto-titulo').textContent = 'Nova Transação Automática';
+        if (customDiv) customDiv.style.display = 'none';
+      }
+
+      // Render lista
+      function renderAutomaticas(automaticas) {
+        if (!automaticas.length) {
+          lista.innerHTML = '<p class="vazio">Ainda não tem transações automáticas.</p>';
+          return;
+        }
+        lista.innerHTML = automaticas.map(auto => {
+          let id = typeof auto._id === 'object' && auto._id.$oid ? auto._id.$oid : auto._id;
+          id = typeof id === 'string' ? id : String(id);
+          const freqLabel = {
+            'diario': 'Diariamente',
+            'semanal': 'Semanalmente',
+            'mensal': 'Mensalmente',
+            'anual': 'Anualmente',
+            'custom': `Cada ${auto.customMinutos || '?'} min`
+          }[auto.frequencia] || auto.frequencia;
+          return `
+          <div class="transacao-card ${auto.tipo}" data-id="${id}">
+            <div class="transacao-icone"><i class="fa ${auto.icone}"></i></div>
+            <div class="transacao-info">
+              <div class="transacao-nome">${sanitizeHTML(auto.nome)}</div>
+              <div class="transacao-data">${freqLabel}</div>
+              <div style="font-size:0.97em;color:#bdbdf7;">Executada <b>${auto.execucoes || 0}</b>x</div>
+            </div>
+            <div class="transacao-preco ${auto.tipo}">${auto.tipo === 'despesa' ? '-' : '+'}€${Number(auto.preco).toFixed(2)}</div>
+            <div class="transacao-actions" style="display:flex;gap:0.5em;align-items:center;">
+              <button class="icon-btn btn-editar" title="Editar" style="background:transparent;border:none;color:#8f7df7;"><i class="fa fa-pen"></i></button>
+              <button class="icon-btn btn-apagar" title="Apagar" style="background:transparent;border:none;color:#ff4b4b;"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+          `;
+        }).join('');
+        // Listeners editar/apagar
+        document.querySelectorAll('.btn-apagar').forEach(btn => {
+          btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const card = btn.closest('.transacao-card');
+            const id = card.getAttribute('data-id');
+            if (!id) return;
+            if (confirm('Tem a certeza que quer apagar esta transação automática?')) {
+              btn.disabled = true;
+              try {
+                const res = await fetch(`http://localhost:3000/api/automaticas/${id}` , {
+                  method: 'DELETE',
+                  headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('Erro ao apagar transação automática');
+                fetchAutomaticas();
+              } catch (err) {
+                alert('Erro ao apagar: ' + (err.message || err));
+              } finally {
+                btn.disabled = false;
+              }
+            }
+          });
+        });
+        document.querySelectorAll('.btn-editar').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const card = btn.closest('.transacao-card');
+            const id = card.getAttribute('data-id');
+            const auto = automaticasOriginais.find(a => String(a._id) === String(id));
+            if (!auto) return;
+            isEditMode = true;
+            editingId = id;
+            form['nome'].value = auto.nome;
+            form['icone'].value = auto.icone;
+            form['preco'].value = auto.preco;
+            form['tipo'].value = auto.tipo;
+            form['frequencia'].value = auto.frequencia;
+            if (auto.frequencia === 'custom' && form['customMinutos']) {
+              form['customMinutos'].value = auto.customMinutos || '';
+              customDiv.style.display = 'block';
+            } else if (customDiv) {
+              customDiv.style.display = 'none';
+            }
+            document.getElementById('modal-auto-titulo').textContent = 'Editar Transação Automática';
+            modal.style.display = 'flex';
+          });
+        });
+      }
+
+      function sanitizeHTML(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Filtros
+      function filtrarAutomaticas() {
+        const termo = (document.getElementById('pesquisa-auto').value || '').toLowerCase();
+        const freq = document.getElementById('filtro-auto-frequencia').value;
+        let filtradas = automaticasOriginais;
+        if (termo) {
+          filtradas = filtradas.filter(a =>
+            (a.nome && a.nome.toLowerCase().includes(termo)) ||
+            (a.icone && a.icone.toLowerCase().includes(termo))
+          );
+        }
+        if (freq) {
+          filtradas = filtradas.filter(a => a.frequencia === freq);
+        }
+        renderAutomaticas(filtradas);
+      }
+
+      // Buscar automaticas
+      async function fetchAutomaticas() {
+        try {
+          const res = await fetch('http://localhost:3000/api/automaticas', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!res.ok) {
+            lista.innerHTML = `<p class="erro">Erro ao buscar transações automáticas</p>`;
+            return;
+          }
+          const data = await res.json();
+          automaticasOriginais = data;
+          renderAutomaticas(data);
+          // Attach filtros
+          const pesquisaInput = document.getElementById('pesquisa-auto');
+          const freqSelect = document.getElementById('filtro-auto-frequencia');
+          if (pesquisaInput) pesquisaInput.addEventListener('input', filtrarAutomaticas);
+          if (freqSelect) freqSelect.addEventListener('change', filtrarAutomaticas);
+        } catch (err) {
+          lista.innerHTML = `<p class="erro">Erro ao carregar transações automáticas: ${err.message}</p>`;
+        }
+      }
+
+      // Validação
+      function validarAuto(auto) {
+        if (!auto.nome || !auto.icone || !auto.preco || !auto.tipo || !auto.frequencia) {
+          throw new Error('Todos os campos são obrigatórios.');
+        }
+        if (auto.nome.length > 100) throw new Error('O nome é demasiado longo.');
+        if (isNaN(auto.preco) || Number(auto.preco) <= 0) throw new Error('Preço inválido.');
+        if (auto.frequencia === 'custom' && (!auto.customMinutos || isNaN(auto.customMinutos) || Number(auto.customMinutos) < 1)) {
+          throw new Error('Intervalo custom inválido.');
+        }
+        return auto;
+      }
+
+      // Submit
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        erroDiv.style.display = 'none';
+        erroDiv.textContent = '';
+        const nova = {
+          nome: form['nome'].value.trim(),
+          icone: form['icone'].value,
+          preco: form['preco'].value,
+          tipo: form['tipo'].value,
+          frequencia: form['frequencia'].value,
+          customMinutos: form['frequencia'].value === 'custom' ? Number(form['customMinutos'].value) : undefined
+        };
+        try {
+          validarAuto(nova);
+          let res;
+          if (isEditMode && editingId) {
+            res = await fetch(`http://localhost:3000/api/automaticas/${editingId}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify(nova)
+            });
+          } else {
+            res = await fetch('http://localhost:3000/api/automaticas', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify(nova)
+            });
+          }
+          if (!res.ok) {
+            let msg = isEditMode ? 'Erro ao editar transação automática' : 'Erro ao guardar transação automática';
+            try {
+              const errJson = await res.json();
+              if (errJson && errJson.mensagem) msg = errJson.mensagem;
+            } catch {}
+            throw new Error(msg);
+          }
+          fecharModal();
+          fetchAutomaticas();
+        } catch (err) {
+          erroDiv.textContent = err.message;
+          erroDiv.style.display = 'block';
+        }
+      });
+
+      // Modal abrir/fechar
+      if (btnAbrir && modal) {
+        btnAbrir.addEventListener('click', function() {
+          isEditMode = false;
+          editingId = null;
+          document.getElementById('modal-auto-titulo').textContent = 'Nova Transação Automática';
+          modal.style.display = 'flex';
+          if (customDiv) customDiv.style.display = 'none';
+        });
+      }
+      if (btnFechar && modal) {
+        btnFechar.addEventListener('click', fecharModal);
+      }
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) fecharModal();
+        });
+      }
+
+      fetchAutomaticas();
+    }
   }
 
   // Restore selected nav from localStorage or default to 'inicio'
-  let selected = localStorage.getItem('selectedNav') || 'inicio';
+  let selected = localStorage.getItem('selectedNav');
   let idx = navIds.indexOf(selected);
-  if (idx === -1) idx = 0;
+  // Forçar default para 'inicio' ao entrar na dashboard
+  if (window.location.hash === '' || !selected || idx === -1) {
+    selected = 'inicio';
+    idx = 0;
+    localStorage.setItem('selectedNav', 'inicio');
+  }
   clearActive();
-  navBtns[idx].classList.add('active');
+  if (navBtns[idx]) navBtns[idx].classList.add('active');
   renderPlaceholder(navIds[idx]);
 
   // Add click listeners
   navBtns.forEach((btn, i) => {
+    if (!btn) return;
     btn.addEventListener('click', () => {
       clearActive();
       btn.classList.add('active');
@@ -1314,6 +1578,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function attachTooltipAndNotifications() {
     // Tooltips
     navBtns.forEach(btn => {
+      if (!btn) return;
       btn.addEventListener('mouseenter', function() {
         const tip = btn.querySelector('.nav-tooltip');
         if (tip) tip.style.opacity = '1';
@@ -1324,62 +1589,213 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-    // Notifications
+    // --- NOTIFICAÇÕES ---
     const notifBtn = document.getElementById('notif-btn');
     const menuOverlay = document.getElementById('menu-overlay');
     let menuOpen = null;
 
-    function getMenuPosition(btn) {
-      const rect = btn.getBoundingClientRect();
-      const menuWidth = 300;
-      let left = rect.right - menuWidth;
-      return {
-        left: left + window.scrollX,
-        top: rect.bottom + window.scrollY + 8 // 8px below
-      };
+    // Badge
+    let notifBadge = document.getElementById('notif-badge');
+    if (!notifBadge && notifBtn) {
+      notifBadge = document.createElement('span');
+      notifBadge.id = 'notif-badge';
+      notifBtn.appendChild(notifBadge);
+    }
+    if (notifBadge) {
+      notifBadge.style.position = 'absolute';
+      notifBadge.style.top = '-7px';
+      notifBadge.style.right = '-7px';
+      notifBadge.style.zIndex = '2';
+      notifBadge.style.pointerEvents = 'none';
+      notifBadge.style.userSelect = 'none';
+      notifBadge.style.display = 'none';
+    }
+    if (notifBtn) notifBtn.style.position = 'relative';
+
+    // --- NOTIFICAÇÕES NA DB ---
+    // API: /api/notificacoes (GET, PUT, DELETE)
+    async function fetchNotificacoes() {
+      const token = localStorage.getItem('token');
+      if (!token) return [];
+      try {
+        const res = await fetch('http://localhost:3000/api/notificacoes', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return [];
+        return await res.json();
+      } catch {
+        return [];
+      }
+    }
+    async function marcarComoLida(id) {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      await fetch(`http://localhost:3000/api/notificacoes/${id}/lida`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }
+    async function marcarTodasComoLidas() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      await fetch('http://localhost:3000/api/notificacoes/lidas', {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+    }
+    async function limparTodasNotificacoes() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      await fetch('http://localhost:3000/api/notificacoes', {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
     }
 
-    function renderMenu(type, btn) {
-      let html = '';
-      if (type === 'notificacoes') {
-        html = `<div class='menu-dropdown'><h3><i class='fa fa-bell'></i> Notificações</h3><div class='menu-content'>As suas notificações aparecerão aqui.</div></div>`;
+    // Atualiza badge
+    async function updateBadge() {
+      const notis = await fetchNotificacoes();
+      const unread = notis.filter(n => !n.lida).length;
+      if (notifBadge && notifBtn) {
+        if (unread > 0) {
+          notifBadge.textContent = unread > 9 ? '9+' : unread;
+          notifBtn.classList.add('has-unread');
+          notifBadge.style.display = 'block';
+        } else {
+          notifBadge.textContent = '';
+          notifBtn.classList.remove('has-unread');
+          notifBadge.style.display = 'none';
+        }
       }
+    }
+
+    // Renderiza o dropdown de notificações
+    async function renderNotisDropdown() {
+      const notis = await fetchNotificacoes();
+      let html = `
+        <div class="menu-dropdown notificacoes-dropdown" id="notis-dropdown" style="min-width:270px;max-width:340px;width:100%;">
+          <h3><i class="fa fa-bell"></i> Notificações</h3>
+          <button class="fechar-notis-btn" title="Fechar"><i class="fa fa-times"></i></button>
+          <div class="notificacoes-lista">
+      `;
+      if (!notis.length) {
+        html += `<div class="notificacoes-vazio">Sem notificações automáticas recentes.</div>`;
+      } else {
+        notis.forEach(noti => {
+          const dataStr = noti.data ? new Date(noti.data).toLocaleString('pt-PT') : '';
+          html += `
+            <div class="notificacao-item${noti.lida ? '' : ' unread'}" data-id="${noti._id}">
+              <span class="notificacao-icone"><i class="fa ${noti.icone || 'fa-repeat'}"></i></span>
+              <div class="notificacao-info">
+                <div class="notificacao-titulo">${noti.nome || 'Transação Automática'}</div>
+                <div class="notificacao-data">Executada em: ${dataStr}</div>
+                <div class="notificacao-count">Total execuções: <b>${noti.execucoes || 1}</b></div>
+              </div>
+            </div>
+          `;
+        });
+      }
+      html += `</div>`;
+      if (notis.some(n => !n.lida)) {
+        html += `<button class="marcar-lidas-btn">Marcar todas como lidas</button>`;
+      }
+      if (notis.length) {
+        html += `<button class="limpar-todas-btn">Limpar todas</button>`;
+      }
+      html += `</div>`;
       menuOverlay.innerHTML = html;
-      const menu = menuOverlay.querySelector('.menu-dropdown');
-      if (menu) {
-        const pos = getMenuPosition(btn);
-        menu.style.position = 'absolute';
-        menu.style.left = `${pos.left}px`;
-        menu.style.top = `${pos.top}px`;
-        menu.style.zIndex = 200;
-      }
       menuOverlay.style.display = 'block';
+
+      // Marcar como lida ao clicar numa notificação
+      menuOverlay.querySelectorAll('.notificacao-item.unread').forEach(item => {
+        item.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          const id = item.getAttribute('data-id');
+          await marcarComoLida(id);
+          await updateBadge();
+          await renderNotisDropdown();
+        });
+      });
+      // Marcar todas como lidas
+      const marcarBtn = menuOverlay.querySelector('.marcar-lidas-btn');
+      if (marcarBtn) {
+        marcarBtn.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          await marcarTodasComoLidas();
+          await updateBadge();
+          await renderNotisDropdown();
+        });
+      }
+      // Limpar todas
+      const limparBtn = menuOverlay.querySelector('.limpar-todas-btn');
+      if (limparBtn) {
+        limparBtn.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          if (confirm('Tem a certeza que quer apagar todas as notificações?')) {
+            await limparTodasNotificacoes();
+            await updateBadge();
+            menuOpen = null;
+            menuOverlay.innerHTML = '';
+            menuOverlay.style.display = 'none';
+          }
+        });
+      }
+      // Fechar dropdown
+      const fecharBtn = menuOverlay.querySelector('.fechar-notis-btn');
+      if (fecharBtn) {
+        fecharBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menuOpen = null;
+          menuOverlay.innerHTML = '';
+          menuOverlay.style.display = 'none';
+        });
+      }
     }
 
-    function closeMenu() {
-      menuOpen = null;
-      menuOverlay.innerHTML = '';
-      menuOverlay.style.display = 'none';
+    // Fechar ao clicar fora do dropdown ou ao clicar novamente no botão
+    function closeMenuOnClickOutside(e) {
+      if (menuOpen && notifBtn && menuOverlay && !notifBtn.contains(e.target) && !menuOverlay.contains(e.target)) {
+        menuOpen = null;
+        menuOverlay.innerHTML = '';
+        menuOverlay.style.display = 'none';
+        document.removeEventListener('mousedown', closeMenuOnClickOutside);
+      }
     }
 
+    // Abrir/fechar menu
     if (notifBtn) {
-      notifBtn.onclick = function(e) {
+      notifBtn.onclick = async function(e) {
         e.stopPropagation();
         if (menuOpen === 'notificacoes') {
-          closeMenu();
+          menuOpen = null;
+          menuOverlay.innerHTML = '';
+          menuOverlay.style.display = 'none';
+          document.removeEventListener('mousedown', closeMenuOnClickOutside);
           return;
         }
         menuOpen = 'notificacoes';
-        renderMenu('notificacoes', notifBtn);
+        await renderNotisDropdown();
+        // Posiciona dropdown
+        const menu = menuOverlay.querySelector('.menu-dropdown');
+        if (menu) {
+          const rect = notifBtn.getBoundingClientRect();
+          const menuWidth = menu.offsetWidth || 320;
+          let left = rect.right - menuWidth;
+          if (left < 10) left = 10;
+          if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
+          menu.style.position = 'absolute';
+          menu.style.left = `${left + window.scrollX}px`;
+          menu.style.top = `${rect.bottom + window.scrollY + 6}px`;
+          menu.style.zIndex = 200;
+        }
+        // Attach close on click outside
+        setTimeout(() => {
+          document.addEventListener('mousedown', closeMenuOnClickOutside);
+        }, 0);
       };
     }
-    document.addEventListener('click', function(e) {
-      if (menuOpen && notifBtn && !notifBtn.contains(e.target) && !menuOverlay.contains(e.target)) {
-        closeMenu();
-      }
-    });
-  }
 
-  // Attach tooltips and notifications on initial load
-  attachTooltipAndNotifications();
+    // Inicializa badge
+    updateBadge();
+  }
 });
