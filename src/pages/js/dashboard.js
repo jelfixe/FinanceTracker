@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <span class="resumo-valor" id="saldo-atual">€0,00</span>
             </div>
             <div class="resumo-card receitas">
-              <span class="resumo-titulo"><i class="fa fa-arrow-down"></i> Receitas</span>
+              <span class="resumo-titulo"><i class="fa fa-arrow-down"></i> Rendimentos</span>
               <span class="resumo-valor" id="total-receitas">€0,00</span>
             </div>
             <div class="resumo-card despesas">
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <canvas id="grafico-evolucao-saldo" style="max-width:420px;max-height:350px;width:100%;height:350px;"></canvas>
             </div>
             <div class="grafico-card">
-              <div class="chart-title">Receitas vs Despesas</div>
+              <div class="chart-title">Rendimentos vs Despesas</div>
               <canvas id="grafico-receitas-despesas" style="max-width:350px;max-height:350px;width:100%;height:350px;"></canvas>
             </div>
           </div>
@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.graficoReceitasDespesas = new Chart(ctxBar, {
           type: 'bar',
           data: {
-            labels: ['Receitas', 'Despesas'],
+            labels: ['Rendimentos', 'Despesas'],
             datasets: [{
               label: 'Valor (€)',
               data: [receitasPeriodo, despesasPeriodoValor],
