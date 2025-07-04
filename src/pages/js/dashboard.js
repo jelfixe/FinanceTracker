@@ -467,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'fa-bus': return 'Transporte';
             case 'fa-bolt': return 'Serviços';
             case 'fa-money-bill': return 'Outro';
+            case 'fa-arrow-up': return 'Despesas';
             default: return ic;
           }
         });
@@ -1561,18 +1562,33 @@ document.addEventListener('DOMContentLoaded', function() {
   if (navBtns[idx]) navBtns[idx].classList.add('active');
   renderPlaceholder(navIds[idx]);
 
-  // Add click listeners
-  navBtns.forEach((btn, i) => {
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      clearActive();
-      btn.classList.add('active');
-      localStorage.setItem('selectedNav', navIds[i]);
-      renderPlaceholder(navIds[i]);
-      // Re-attach tooltip and notifications logic after rendering new section
-      attachTooltipAndNotifications();
-    });
+  // --- Smooth transition for tab switching ---
+  function switchTabWithTransition(section) {
+    if (!main) return renderPlaceholder(section);
+    main.classList.add('fade-out');
+    setTimeout(() => {
+      renderPlaceholder(section);
+      main.classList.remove('fade-out');
+      main.classList.add('fade-in');
+      setTimeout(() => main.classList.remove('fade-in'), 250);
+    }, 220);
+  }
+
+  // --- Navigation button logic ---
+  navBtns.forEach((btn, idx) => {
+    if (btn) {
+      btn.addEventListener('click', function() {
+        clearActive();
+        btn.classList.add('active');
+        switchTabWithTransition(navIds[idx]);
+      });
+    }
   });
+
+  // --- Initial load: show 'inicio' tab with fade-in effect ---
+  main.classList.add('fade-in');
+  setTimeout(() => main.classList.remove('fade-in'), 250);
+  renderPlaceholder('inicio');
 
   // --- TOOLTIP & NOTIFICATIONS LOGIC ---
   function attachTooltipAndNotifications() {

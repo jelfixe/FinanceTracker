@@ -191,6 +191,16 @@ body::-webkit-scrollbar-track {
   justify-content: flex-start;
   min-height: 80vh;
   padding: 2.5rem 1rem 1rem 1rem;
+  transition: opacity 0.22s cubic-bezier(.4,1.4,.6,1);
+  opacity: 1;
+}
+.dashboard-main.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+.dashboard-main.fade-in {
+  opacity: 1;
+  pointer-events: auto;
 }
 .placeholder-section {
   background: var(--background-secondary);
@@ -1205,64 +1215,35 @@ body::-webkit-scrollbar-track {
   gap: 2.5rem;
   justify-content: flex-start;
   align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
 }
+
+/* Make all chart cards the same width and allow them to grow/shrink equally */
 .dashboard-inicio .dashboard-graficos > div {
+  flex: 1 1 0;
+  min-width: 300px;
+  max-width: 350px;
+  width: 100%;
   background: var(--background-card);
   border-radius: var(--radius-card);
   box-shadow: 0 4px 24px rgba(109, 93, 210, 0.10);
   padding: 1.5rem 1.5rem 1.2rem 1.5rem;
-  min-width: 0;
-  max-width: 420px;
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  margin-bottom: 0; /* Remove extra margin if present */
 }
 
-.dashboard-inicio .dashboard-graficos canvas {
-  width: 100% !important;
-  height: auto !important;
-  aspect-ratio: 1.5 / 1 !important;
-  max-width: 100%;
-  margin: 0 auto;
-  display: block;
-}
-.dashboard-inicio .dashboard-graficos .chart-title {
-  color: var(--text-secondary);
-  font-size: 1.13em;
-  font-weight: 600;
-  margin-bottom: 0.7em;
-  text-align: center;
-  letter-spacing: 0.01em;
-}
-.dashboard-inicio .dashboard-meta {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-.dashboard-inicio .dashboard-meta .meta-item {
-  color: var(--text-secondary);
-  font-size: 1.08em;
-  background: var(--background-card);
-  border-radius: 0.7em;
-  padding: 0.5em 1.2em;
-  font-weight: 500;
-  box-shadow: 0 1px 4px #6d5dd222;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
+/* Responsive: stack vertically on small screens */
 @media (max-width: 1100px) {
-  .dashboard-inicio .dashboard-resumo,
-  .dashboard-inicio .dashboard-meta {
-    flex-wrap: wrap;
-    gap: 1.2rem;
-  }
   .dashboard-inicio .dashboard-graficos {
     flex-direction: column;
     gap: 1.2rem;
+  }
+  .dashboard-inicio .dashboard-graficos > div {
+    max-width: 100vw;
+    min-width: 0;
   }
 }
 @media (max-width: 700px) {
@@ -1542,5 +1523,282 @@ body::-webkit-scrollbar-track {
 .menu-dropdown.notificacoes-dropdown .marcar-lidas-btn:hover {
   background: var(--background-gradient-btn-hover);
   border-color: var(--border-accent);
+}
+
+/* --- Scroll interno para listas longas --- */
+.transacoes-lista,
+.poupancas-lista,
+.automaticas-lista {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+  /* Opcional: para evitar que o conteúdo fique muito largo */
+  min-height: 120px;
+}
+
+/* Scrollbar custom para listas */
+.transacoes-lista::-webkit-scrollbar,
+.poupancas-lista::-webkit-scrollbar,
+.automaticas-lista::-webkit-scrollbar {
+  width: 8px;
+  background: var(--background-main);
+}
+.transacoes-lista::-webkit-scrollbar-thumb,
+.poupancas-lista::-webkit-scrollbar-thumb,
+.automaticas-lista::-webkit-scrollbar-thumb {
+  background: var(--background-secondary);
+  border-radius: 6px;
+}
+.transacoes-lista::-webkit-scrollbar-track,
+.poupancas-lista::-webkit-scrollbar-track,
+.automaticas-lista::-webkit-scrollbar-track {
+  background: var(--background-main);
+}
+
+/* Para Firefox */
+.transacoes-lista,
+.poupancas-lista,
+.automaticas-lista {
+  scrollbar-width: thin;
+  scrollbar-color: var(--background-secondary) var(--background-main);
+}
+
+/* --- MOBILE SUPPORT --- */
+@media (max-width: 900px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+    padding: 0.7rem 1vw 0.7rem 1vw;
+  }
+  .dashboard-nav.user-nav {
+    position: static;
+    transform: none;
+    left: unset;
+    top: unset;
+    margin: 0 auto;
+    padding: 0.25rem 0.3rem;
+    gap: 0.5rem;
+  }
+  .user-info {
+    margin-left: 0;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .dashboard-main {
+    padding: 1.2rem 0.2rem 0.7rem 0.2rem;
+    min-height: 70vh;
+    max-width: 100vw;
+  }
+  .dashboard-inicio {
+    padding-top: 0.5rem;
+    gap: 1.2rem;
+    max-width: 100vw;
+  }
+  .dashboard-inicio .dashboard-graficos {
+    gap: 1.2rem;
+  }
+  .dashboard-inicio .dashboard-graficos > div {
+    min-width: 0;
+    max-width: 100vw;
+    padding: 0.5rem 0.1rem 0.5rem 0.1rem;
+  }
+  .dashboard-resumo {
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin: 1.2rem 0 0.7rem 0;
+  }
+  .resumo-card {
+    min-width: 90px;
+    padding: 0.7rem 0.7rem;
+    font-size: 0.98em;
+  }
+  .transacoes-header h1,
+  .transacoes-header .btn {
+    font-size: 1.1rem;
+  }
+  .grafico-card {
+    min-width: 0;
+    max-width: 100vw;
+    padding: 0.5rem 0.1rem 0.5rem 0.1rem;
+  }
+  .transacao-card,
+  .poupanca-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.7rem 0.7rem;
+    margin-bottom: 0.7rem;
+    min-width: 0;
+    font-size: 0.97em;
+  }
+  .transacao-icone,
+  .poupanca-icone {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    justify-content: flex-start;
+  }
+  .transacao-preco,
+  .poupanca-progress-label {
+    margin-left: 0;
+    text-align: left;
+    min-width: 0;
+    font-size: 1em;
+  }
+  .transacao-actions,
+  .poupanca-actions {
+    flex-direction: row !important;
+    gap: 0.5em;
+    margin-left: 0;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .poupanca-info {
+    gap: 0.1em;
+  }
+  .dashboard-graficos {
+    flex-direction: column;
+    gap: 1.2rem;
+    align-items: stretch;
+  }
+  .grafico-placeholder {
+    padding: 1rem 0.5rem;
+    min-width: 0;
+    font-size: 1em;
+  }
+  .modal-transacao .modal-conteudo,
+  #modal-add-money .modal-conteudo,
+  #modal-poupanca .modal-conteudo,
+  #modal-auto .modal-conteudo {
+    min-width: 0;
+    max-width: 98vw;
+    padding: 1.1rem 0.7rem;
+  }
+  .fechar-modal {
+    top: 7px;
+    right: 10px;
+    font-size: 1.5rem;
+  }
+  .dashboard-meta {
+    gap: 0.7rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .nav-btn,
+  .header-btn,
+  .user-actions .icon-btn,
+  .user-actions button.logout {
+    width: 30px;
+    height: 30px;
+    font-size: 0.98rem;
+    padding: 0;
+  }
+  .nav-tooltip {
+    font-size: 0.85rem;
+    padding: 0.18em 0.5em;
+  }
+  .menu-dropdown {
+    min-width: 180px !important;
+    max-width: 98vw !important;
+    padding: 0.7rem 0.5rem;
+    font-size: 0.98rem;
+  }
+  .menu-dropdown::before {
+    right: 1.2rem;
+  }
+  .menu-dropdown h3 {
+    font-size: 1rem;
+  }
+  .transacoes-filtros,
+  .poupancas-filtros,
+  .automaticas-filtros {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+  #pesquisa-transacao,
+  #pesquisa-poupanca,
+  #pesquisa-auto,
+  #filtro-categoria,
+  #filtro-poupanca-categoria,
+  #filtro-auto-frequencia {
+    font-size: 0.98rem;
+    padding: 0.4em 0.7em;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .transacoes-lista,
+  .poupancas-lista,
+  .automaticas-lista {
+    max-height: 45vh;
+    min-height: 80px;
+    font-size: 0.97em;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 500px) {
+  .dashboard-header {
+    padding: 0.3rem 0.2rem 0.3rem 0.2rem;
+  }
+  .dashboard-main {
+    padding: 0.3rem 0.1rem 0.3rem 0.1rem;
+  }
+  .dashboard-inicio {
+    padding-top: 0.2rem;
+    gap: 0.5rem;
+  }
+  .dashboard-inicio .dashboard-graficos {
+    gap: 0.5rem;
+  }
+  .dashboard-inicio .dashboard-graficos > div {
+    padding: 0.2rem 0.05rem 0.2rem 0.05rem;
+  }
+  .dashboard-resumo {
+    gap: 0.3rem;
+    margin: 0.5rem 0 0.3rem 0;
+  }
+  .resumo-card {
+    min-width: 70px;
+    padding: 0.4rem 0.4rem;
+    font-size: 0.93em;
+  }
+  .transacao-card,
+  .poupanca-card {
+    padding: 0.4rem 0.4rem;
+    font-size: 0.93em;
+  }
+  .modal-transacao .modal-conteudo,
+  #modal-add-money .modal-conteudo,
+  #modal-poupanca .modal-conteudo,
+  #modal-auto .modal-conteudo {
+    padding: 0.7rem 0.2rem;
+  }
+  .fechar-modal {
+    top: 3px;
+    right: 5px;
+    font-size: 1.2rem;
+  }
+  .menu-dropdown {
+    padding: 0.4rem 0.2rem;
+    font-size: 0.93rem;
+  }
+  .menu-dropdown h3 {
+    font-size: 0.93rem;
+  }
+  .nav-btn,
+  .header-btn,
+  .user-actions .icon-btn,
+  .user-actions button.logout {
+    width: 26px;
+    height: 26px;
+    font-size: 0.93rem;
+  }
+  .nav-tooltip {
+    font-size: 0.78rem;
+    padding: 0.12em 0.3em;
+  }
 }
 
